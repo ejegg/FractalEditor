@@ -1,20 +1,75 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".DisplayActivity" >
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentTop="true"
+    android:gravity="center_horizontal|center_vertical|fill_horizontal"
+    android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="fill_horizontal|right|top"
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/loadButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_menu_load" />
+
+            <Button
+                android:id="@+id/saveButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_menu_save" />
+
+            <Button
+                android:id="@+id/undoButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/undo" />
+
+            <Button
+                android:id="@+id/addButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_menu_add"/>
+
+            <Button
+                android:id="@+id/removeButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_menu_remove" />
+            <Button
+                android:id="@+id/scaleModeButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_menu_scale_uniform" />            
+            <Button
+                android:id="@+id/modeButton"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/ic_menu_edit" />
+
+        </LinearLayout>
+
         <ProgressBar
             android:id="@+id/computeProgress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-    <com.ejegg.fractaldisplay.FractalDisplayView
+
+<com.ejegg.fractaldisplay.FractalDisplayView
          android:id="@+id/fractalCanvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-</RelativeLayout>
+</LinearLayout>

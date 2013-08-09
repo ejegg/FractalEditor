@@ -86,7 +86,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
 	@Override
 	protected void onProgressUpdate(Integer... values) {
 		if (progressListener != null) {
-			progressListener.setProgress(values[0]);
+			progressListener.progressed(values[0]);
 		}
 	}
 	
@@ -99,7 +99,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
 	
 	public interface ProgressListener {
 		void started();
-		void setProgress(int value);
+		void progressed(int progress);
 		void finished(FloatBuffer points);
 	}
 }
