@@ -2,6 +2,8 @@ package com.ejegg.fractaldisplay;
 
 import java.nio.FloatBuffer;
 
+import com.ejegg.fractaldisplay.spatial.Camera;
+
 import android.opengl.GLES20;
 import android.util.Log;
 

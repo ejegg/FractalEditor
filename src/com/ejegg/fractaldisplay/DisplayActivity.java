@@ -2,6 +2,8 @@ package com.ejegg.fractaldisplay;
 
 import java.nio.FloatBuffer;
 
+import com.ejegg.fractaldisplay.spatial.Camera;
+
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.app.Activity;
@@ -21,11 +23,16 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		appContext = (FractalDisplay)getApplicationContext();
+		Camera camera = appContext.getCamera(); 
+		
 		fractalRenderer = new FractalRenderer();
-		mainRenderer = new MainRenderer(appContext.getCamera(), fractalRenderer);
+		mainRenderer = new MainRenderer(camera, fractalRenderer);
 		setContentView(R.layout.activity_display);
-		GLSurfaceView view = (GLSurfaceView)findViewById(R.id.fractalCanvas);
+		FractalDisplayView view = (FractalDisplayView)findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
+		
+		view.getMotionEventHandler().addSubscriber(camera);
+		
         progressBar = (ProgressBar)findViewById(R.id.computeProgress);
 		if (appContext.getFractalPoints() != null) {
 			progressBar.setVisibility(View.GONE);

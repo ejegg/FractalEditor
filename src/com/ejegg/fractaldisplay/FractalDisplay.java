@@ -2,6 +2,8 @@ package com.ejegg.fractaldisplay;
 
 import java.nio.FloatBuffer;
 
+import com.ejegg.fractaldisplay.spatial.Camera;
+
 import android.app.Application;
 
 public class FractalDisplay extends Application {
