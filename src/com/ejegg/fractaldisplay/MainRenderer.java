@@ -24,6 +24,9 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		if (fractalRenderer.ready()) {
 			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 			fractalRenderer.draw(camera);
+			if (camera.isMoving()) {
+				camera.spinStep();
+			}
 		}
 	}
 
@@ -31,7 +34,7 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		Log.d("MainRenderer", "onSurfaceChanged");
 		GLES20.glViewport(0, 0, width, height);
-		camera.setRatio((float) width / height);
+		camera.setScreenDimensions(width,height);
 		fractalRenderer.initialize();
 	}
 

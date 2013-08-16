@@ -25,7 +25,7 @@ public class FractalRenderer extends GlRenderer {
     	    	    "varying float dist; " +
     	    	    "void main() {" +
     	    	    "  gl_Position = uMVPMatrix * vPosition;" +
-    	    	    "  dist = 2.0 - gl_Position.z;" +
+    	    	    "  dist = gl_Position.z;" +
     	    	    "}";
 
     	 fragmentShaderCode =
@@ -34,12 +34,12 @@ public class FractalRenderer extends GlRenderer {
     	    	    "uniform int fade;" +
     	    	    "varying float dist; " +
     	    	    "void main() {" +
-    	    	    "  if (fade > 0) {" +
-    	    	    "	 gl_FragColor = vColor / (1.0 + (dist / 3.0 ));" +
-    	    	    "    gl_FragColor.w = 1.0 - (dist / 2.0);" +
-    	    	    "  } else {" +
-    	    	    "    gl_FragColor = vColor; " +
-    	    	    "  }" +
+    	    	    //"  if (fade > 0) {" +
+    	    	    "	 gl_FragColor = vColor;" +
+    	    	    "    gl_FragColor.w = 1.0 - dist / 3.0;" +
+    	    	    //"  } else {" +
+    	    	    //"    gl_FragColor = vColor; " +
+    	    	    //"  }" +
     	    	    "  if (gl_FragColor.w < 0.1) gl_FragColor.w = 0.1;" +
     	    	    "}";
     }
