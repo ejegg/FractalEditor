@@ -18,11 +18,13 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	private MainRenderer mainRenderer;
 	private FractalDisplay appContext;
 	private ProgressBar progressBar;
+	private FractalStateManager stateManager;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		appContext = (FractalDisplay)getApplicationContext();
+		stateManager = appContext.getStateManager();
 		Camera camera = appContext.getCamera(); 
 		
 		fractalRenderer = new FractalRenderer();
@@ -31,14 +33,12 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		FractalDisplayView view = (FractalDisplayView)findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
 		
-		view.getMotionEventHandler().addSubscriber(camera);
-		
         progressBar = (ProgressBar)findViewById(R.id.computeProgress);
-		if (appContext.getFractalPoints() != null) {
+		if (stateManager.getFractalPoints() != null) {
 			progressBar.setVisibility(View.GONE);
-			fractalRenderer.setPoints(appContext.getNumPoints(), appContext.getFractalPoints());
+			fractalRenderer.setPoints(stateManager.getNumPoints(), stateManager.getFractalPoints());
 		} else {
-			FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(appContext.getState(), appContext.getNumPoints());
+			FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(stateManager.getState(), stateManager.getNumPoints());
 			new FractalCalculatorTask(this).execute(request);
 		}
 	}
@@ -65,7 +65,7 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	public void finished(FloatBuffer points) {
 		Log.d("DisplayActivity", "GotPoints");
 		progressBar.setVisibility(View.GONE);
-		appContext.setFractalPoints(points);
-		fractalRenderer.setPoints(appContext.getNumPoints(), points);
+		stateManager.setFractalPoints(points);
+		fractalRenderer.setPoints(stateManager.getNumPoints(), points);
 	}
 }
