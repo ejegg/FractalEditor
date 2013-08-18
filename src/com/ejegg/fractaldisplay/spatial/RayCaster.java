@@ -12,7 +12,7 @@ public class RayCaster {
 		this.height = height;
 		this.inverseProjectionMatrix = inverseProjectionMatrix;
 	}
-
+	
 	public void getTouchRay(float[] nearPoint, float[] farPoint, float x, float y)
 	{
 		getTouchPoint(nearPoint, x, y, 0);

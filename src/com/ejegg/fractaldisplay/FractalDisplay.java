@@ -1,5 +1,6 @@
 package com.ejegg.fractaldisplay;
 
+import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
 import android.app.Application;
 

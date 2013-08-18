@@ -1,9 +1,12 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.fractaldisplay.persist;
 
 public class FractalState {
 	private int id;
+	private int selectedTransform = NO_CUBE_SELECTED;
 	private int numTransforms;
 	private float[][] transforms;
+
+	public static final int NO_CUBE_SELECTED = -1;
 	
 	public FractalState(int numTransforms, float[][] transforms) {
 		this.numTransforms = numTransforms;
@@ -53,8 +56,8 @@ public class FractalState {
 		return builder.toString();
 	}
 
-	public void getTransforms(float[][] transforms) {
-		System.arraycopy(this.transforms, 0, transforms, 0, this.transforms.length);
+	public float[][] getTransforms() {
+		return transforms;
 	}
 	
 	public int getNumTransforms() {
@@ -67,5 +70,13 @@ public class FractalState {
 	
 	public void setId(int value) {
 		id = value;
+	}
+
+	public int getSelectedTransform() {
+		return selectedTransform;
+	}
+
+	public void setSelectedTransform(int selectedTransform) {
+		this.selectedTransform = selectedTransform;
 	}
 }

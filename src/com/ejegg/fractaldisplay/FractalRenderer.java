@@ -1,7 +1,6 @@
 package com.ejegg.fractaldisplay;
 
-import java.nio.FloatBuffer;
-
+import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
 import android.opengl.GLES20;
@@ -9,17 +8,18 @@ import android.util.Log;
 
 public class FractalRenderer extends GlRenderer {
 		
-	private FloatBuffer pointBuffer;
 	private int mvpMatrixHandle;
-	//private int mFadeHandle;
 	private int colorHandle;
 	private int positionHandle;
-	private int numPoints;
+	private Camera camera;
+	private FractalStateManager stateManager;
 	
     private float color[] = { 0.35f, 1.0f, 0.3f, 1.0f };
     
-    public FractalRenderer() {
-    	 vertexShaderCode =
+    public FractalRenderer(Camera camera, FractalStateManager stateManager) {
+    	this.camera = camera;
+    	this.stateManager = stateManager;
+    	vertexShaderCode =
     	    		"uniform mat4 uMVPMatrix;" +
     	    	    "attribute vec4 vPosition;" +
     	    	    "varying float dist; " +
@@ -28,7 +28,7 @@ public class FractalRenderer extends GlRenderer {
     	    	    "  dist = gl_Position.z;" +
     	    	    "}";
 
-    	 fragmentShaderCode =
+    	fragmentShaderCode =
     	    	    "precision mediump float;" +
     	    	    "uniform vec4 vColor;" +
     	    	    "uniform int fade;" +
@@ -40,11 +40,10 @@ public class FractalRenderer extends GlRenderer {
     	    	    //"  } else {" +
     	    	    //"    gl_FragColor = vColor; " +
     	    	    //"  }" +
-    	    	    "  if (gl_FragColor.w < 0.1) gl_FragColor.w = 0.1;" +
+    	    	    "  if (gl_FragColor.w < 0.1) gl_FragColor.w = 0.3;" +
     	    	    "}";
     }
     
-    @Override
     public void initialize() {
     	setShaders();
     	Log.d("FractalRenderer", "Called setShaders, programHandle is " + programHandle);
@@ -52,22 +51,11 @@ public class FractalRenderer extends GlRenderer {
     	colorHandle = GLES20.glGetUniformLocation(programHandle, "vColor");
     	positionHandle = GLES20.glGetAttribLocation(programHandle, "vPosition");
     }
-    
-    public boolean ready() {
-    	return numPoints > 0 && pointBuffer != null;
-    }
-    
-    public void setPoints(int numPoints, FloatBuffer points) {
-    	this.numPoints = numPoints;
-    	this.pointBuffer = points;
-    }
-    
-    public void draw(Camera camera) {
+        
+    public void draw() {
+    	if (!stateManager.hasPoints()) return;
+    	
     	float[] mvpMatrix = camera.getMVPMatrix();
-    	if (numPoints == 0) return;
-    	if (mvpMatrix == null) {
-    		Log.d("Fractal", "mvpMatrix is null");
-    	}
     	
     	GLES20.glUseProgram(programHandle);
 
@@ -76,11 +64,11 @@ public class FractalRenderer extends GlRenderer {
     	GLES20.glEnableVertexAttribArray(positionHandle);
     	
     	GLES20.glVertexAttribPointer(positionHandle, 
-    			COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, pointBuffer);
+    			COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, stateManager.getFractalPoints());
 
     	GLES20.glUniform4fv(colorHandle, 1, color, 0);
     	
-    	GLES20.glDrawArrays(GLES20.GL_POINTS, 0, numPoints);
+    	GLES20.glDrawArrays(GLES20.GL_POINTS, 0, stateManager.getNumPoints());
     	
     	GLES20.glDisableVertexAttribArray(positionHandle);
     }

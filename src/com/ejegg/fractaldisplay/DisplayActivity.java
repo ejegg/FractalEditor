@@ -2,6 +2,8 @@ package com.ejegg.fractaldisplay;
 
 import java.nio.FloatBuffer;
 
+import com.ejegg.fractaldisplay.persist.FractalState;
+import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
 import android.opengl.GLSurfaceView;
@@ -12,10 +14,8 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.ProgressBar;
 
-public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener {
+public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.StateChangeSubscriber {
 
-	private FractalRenderer fractalRenderer;
-	private MainRenderer mainRenderer;
 	private FractalDisplay appContext;
 	private ProgressBar progressBar;
 	private FractalStateManager stateManager;
@@ -25,10 +25,9 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		super.onCreate(savedInstanceState);
 		appContext = (FractalDisplay)getApplicationContext();
 		stateManager = appContext.getStateManager();
-		Camera camera = appContext.getCamera(); 
+		Camera camera = appContext.getCamera();
+		MainRenderer mainRenderer = new MainRenderer(camera, stateManager);
 		
-		fractalRenderer = new FractalRenderer();
-		mainRenderer = new MainRenderer(camera, fractalRenderer);
 		setContentView(R.layout.activity_display);
 		FractalDisplayView view = (FractalDisplayView)findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
@@ -36,11 +35,14 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
         progressBar = (ProgressBar)findViewById(R.id.computeProgress);
 		if (stateManager.getFractalPoints() != null) {
 			progressBar.setVisibility(View.GONE);
-			fractalRenderer.setPoints(stateManager.getNumPoints(), stateManager.getFractalPoints());
 		} else {
-			FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(stateManager.getState(), stateManager.getNumPoints());
-			new FractalCalculatorTask(this).execute(request);
+			recalculatePoints(stateManager.getState());
 		}
+	}
+
+	private void recalculatePoints(FractalState state) {
+		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(state, stateManager.getNumPoints());
+		new FractalCalculatorTask(this).execute(request);
 	}
 
 	@Override
@@ -66,6 +68,10 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		Log.d("DisplayActivity", "GotPoints");
 		progressBar.setVisibility(View.GONE);
 		stateManager.setFractalPoints(points);
-		fractalRenderer.setPoints(stateManager.getNumPoints(), points);
+	}
+
+	@Override
+	public void updateState(FractalState newState, boolean undoEnabled) {
+		recalculatePoints(newState);
 	}
 }

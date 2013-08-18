@@ -5,6 +5,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.Random;
 
+import com.ejegg.fractaldisplay.persist.FractalState;
+
 import android.opengl.Matrix;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -23,8 +25,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
 		Log.d("FractalCalculatorTask", "Starting calculation");
 		int numPoints = fractalRequest[0].getNumPoints();
 		int numTransforms = fractalRequest[0].getFractal().getNumTransforms();
-		float[][] transforms = new float[numTransforms][16];
-		fractalRequest[0].getFractal().getTransforms(transforms);
+		float[][] transforms = fractalRequest[0].getFractal().getTransforms();
 		
     	float[] currentPoint = new float[4];
     	for(int i = 0; i < 3; i++) {

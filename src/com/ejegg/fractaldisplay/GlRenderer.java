@@ -1,5 +1,7 @@
 package com.ejegg.fractaldisplay;
 
+import com.ejegg.fractaldisplay.spatial.Camera;
+
 import android.opengl.GLES20;
 
 public abstract class GlRenderer {
@@ -38,4 +40,6 @@ public abstract class GlRenderer {
 	}
 
 	public abstract void initialize();
+	
+	public abstract void draw();
 }
