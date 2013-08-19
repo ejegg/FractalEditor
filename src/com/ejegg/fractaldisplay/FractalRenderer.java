@@ -42,9 +42,7 @@ public class FractalRenderer extends GlRenderer {
     	    	    //"  }" +
     	    	    "  if (gl_FragColor.w < 0.1) gl_FragColor.w = 0.3;" +
     	    	    "}";
-    }
-    
-    public void initialize() {
+
     	setShaders();
     	Log.d("FractalRenderer", "Called setShaders, programHandle is " + programHandle);
 		mvpMatrixHandle = GLES20.glGetUniformLocation(programHandle, "uMVPMatrix");

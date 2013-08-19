@@ -1,34 +1,39 @@
 package com.ejegg.fractaldisplay;
 
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 import com.ejegg.fractaldisplay.persist.FractalState;
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ProgressBar;
 
-public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.StateChangeSubscriber {
+public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.StateChangeSubscriber, OnClickListener {
 
-	private FractalDisplay appContext;
 	private ProgressBar progressBar;
 	private FractalStateManager stateManager;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		appContext = (FractalDisplay)getApplicationContext();
+		setContentView(R.layout.activity_display);
+		setButtons();
+		
+		FractalDisplay appContext = (FractalDisplay)getApplicationContext();
 		stateManager = appContext.getStateManager();
+		setEditButtonState();
+		
 		Camera camera = appContext.getCamera();
 		MainRenderer mainRenderer = new MainRenderer(camera, stateManager);
 		
-		setContentView(R.layout.activity_display);
 		FractalDisplayView view = (FractalDisplayView)findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
 		
@@ -45,6 +50,17 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		new FractalCalculatorTask(this).execute(request);
 	}
 
+	private void setButtons() {
+	   	for (int id : Arrays.asList(R.id.loadButton, R.id.saveButton, R.id.undoButton, R.id.addButton, R.id.removeButton, R.id.modeButton, R.id.scaleModeButton)) {
+	   		Button button = (Button) findViewById(id);//who's got the button?
+	   		if ( button == null ) {
+	   			Log.d("DisplayActivity", "button " + id + " is null, can set click listener");	   			
+	   		} else {
+	   			button.setOnClickListener(this);
+	   		}
+	   	}
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -59,7 +75,6 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	}
 
 	public void progressed(int progress) {
-		Log.d("DisplayActivity", "GotProgress");
 		this.progressBar.setProgress(progress);
 	}
 
@@ -73,5 +88,22 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	@Override
 	public void updateState(FractalState newState, boolean undoEnabled) {
 		recalculatePoints(newState);
+	}
+
+	@Override
+	public void onClick(View v) {
+		switch(v.getId()){
+			case R.id.modeButton:
+				boolean newEditMode = !stateManager.getEditMode(); 
+				stateManager.setEditMode(newEditMode);
+				setEditButtonState();
+				break;
+			default:
+				break;
+		}
+	}
+	
+	private void setEditButtonState() {
+		((EditButton)findViewById(R.id.modeButton)).setEditMode(stateManager.getEditMode());
 	}
 }

@@ -1,8 +1,7 @@
 package com.ejegg.fractaldisplay;
 
-import com.ejegg.fractaldisplay.spatial.Camera;
-
 import android.opengl.GLES20;
+import android.util.Log;
 
 public abstract class GlRenderer {
 
@@ -39,7 +38,13 @@ public abstract class GlRenderer {
 		GLES20.glDeleteProgram(programHandle);
 	}
 
-	public abstract void initialize();
-	
 	public abstract void draw();
+	
+	protected void checkGlError(String TAG, String op) {
+        int error;
+        while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+            Log.e(TAG, op + ": glError " + error);
+            throw new RuntimeException(op + ": glError " + error);
+        }
+    }
 }

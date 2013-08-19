@@ -9,7 +9,7 @@ public class Camera {
     private final float[] mInverseProjectionMatrix = new float[16];
     private boolean inverseProjectionNeedsRecalculating = true;
     private final float[] mVMatrix = new float[16];
-    private final float[] eyePosition = {0, 0, 8};
+    private final float[] eyePosition = {0, 0, -8};
     private final float[] lookAt = {0, 0, 0};
     private final float[] up = {0, 1, 0, 1};
     private float[] mRotationAxis = new float[4];

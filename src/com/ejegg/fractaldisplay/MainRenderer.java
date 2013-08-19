@@ -20,8 +20,6 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 	public MainRenderer(Camera camera, FractalStateManager stateManager) {
 		this.camera = camera;
 		this.stateManager = stateManager;
-		this.fractalRenderer = new FractalRenderer(camera, stateManager);
-		this.cubeRenderer = new CubeRenderer(camera, stateManager);
 	}
 	
 	@Override
@@ -42,7 +40,7 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		Log.d("MainRenderer", "onSurfaceChanged");
 		GLES20.glViewport(0, 0, width, height);
 		camera.setScreenDimensions(width,height);
-		fractalRenderer.initialize();
+		Log.d("MainRenderer", "Done onSurfaceChanged");
 	}
 
 	@Override
@@ -50,12 +48,16 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		Log.d("MainRenderer", "Starting onSurfaceCreated");
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		GLES20.glEnable(GLES20.GL_BLEND);
-		GLES20.glClearDepthf(-10.0f);
+		GLES20.glClearDepthf(1.0f);
 		GLES20.glEnable( GLES20.GL_DEPTH_TEST );
-		GLES20.glDepthFunc( GLES20.GL_GEQUAL );
+		GLES20.glDepthFunc( GLES20.GL_LEQUAL );
     	GLES20.glEnable(GLES20.GL_CULL_FACE);
+    	GLES20.glCullFace(GLES20.GL_BACK);
 		GLES20.glDepthMask( true );
-
     	GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+
+		this.fractalRenderer = new FractalRenderer(camera, stateManager);
+		this.cubeRenderer = new CubeRenderer(camera, stateManager);
+		Log.d("MainRenderer", "Done onSurfaceCreated");
 	}
 }

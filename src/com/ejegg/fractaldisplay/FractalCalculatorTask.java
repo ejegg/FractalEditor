@@ -42,7 +42,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     		System.arraycopy(fractalPoints, srpPos, currentPoint, 0, GlRenderer.COORDS_PER_VERTEX);
     		
     		if (i % progressStep == 0) {
-    			Log.d("FractalCalculatorTask", "progress at " + (i * 100 / numPoints));
+    			//Log.d("FractalCalculatorTask", "progress at " + (i * 100 / numPoints));
     			publishProgress(i * 100 / numPoints);
     			if (isCancelled()) {
     				return null;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android" 
+    xmlns:app="http://schemas.android.com/apk/res/com.ejegg.fractaldisplay">
+    <item 
+        app:state_edit="false"
+        android:drawable="@drawable/ic_menu_edit" />
+    <item 
+        app:state_edit="true"
+        android:drawable="@drawable/ic_menu_render" />
+</selector>
