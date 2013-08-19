@@ -14,10 +14,12 @@ import android.util.Log;
 public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Request, Integer, FloatBuffer> {
 
     private final Random r = new Random();
-    private ProgressListener progressListener;    
+    private ProgressListener progressListener;
+    private ResultListener resultListener;
     
-    public FractalCalculatorTask(ProgressListener listener) {
-    	this.progressListener  = listener;
+    public FractalCalculatorTask(ProgressListener progressListener, ResultListener resultListener) {
+    	this.progressListener  = progressListener;
+    	this.resultListener = resultListener;
     }
     
 	@Override
@@ -94,13 +96,24 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
 	protected void onPostExecute(FloatBuffer points){
 		Log.d("FractalCalculatorTask", "onPostExecute, publishing points");
 		if (progressListener != null) {
-			progressListener.finished(points);
+			progressListener.finished();
 		}
+		if (resultListener != null) {
+			resultListener.finished(points);
+		}
+	}
+	
+	public void setProgressListener(ProgressListener listener) {
+		this.progressListener = listener;
 	}
 	
 	public interface ProgressListener {
 		void started();
 		void progressed(int progress);
+		void finished();
+	}
+	
+	public interface ResultListener {
 		void finished(FloatBuffer points);
 	}
 }

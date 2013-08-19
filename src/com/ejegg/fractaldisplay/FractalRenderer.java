@@ -40,7 +40,7 @@ public class FractalRenderer extends GlRenderer {
     	    	    //"  } else {" +
     	    	    //"    gl_FragColor = vColor; " +
     	    	    //"  }" +
-    	    	    "  if (gl_FragColor.w < 0.1) gl_FragColor.w = 0.3;" +
+    	    	    "  if (gl_FragColor.w < 0.2) gl_FragColor.w = 0.2;" +
     	    	    "}";
 
     	setShaders();
@@ -51,7 +51,12 @@ public class FractalRenderer extends GlRenderer {
     }
         
     public void draw() {
-    	if (!stateManager.hasPoints()) return;
+    	if (!stateManager.hasPoints()) {
+    		if (!stateManager.isRecalculating()) {
+    			stateManager.recalculatePoints();
+    		}
+    		return;
+    	}
     	
     	float[] mvpMatrix = camera.getMVPMatrix();
     	

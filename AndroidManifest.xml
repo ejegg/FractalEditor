@@ -23,6 +23,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+                <activity
+            android:name=".LoadActivity"
+            android:label="@string/title_activity_load" >
+        </activity>
+
+        <provider
+            android:name="com.ejegg.fractaldisplay.persist.FractalStateProvider"
+            android:authorities="com.ejegg.fractaldisplay.persist.FractalState" >
+        </provider>
     </application>
 
 </manifest>

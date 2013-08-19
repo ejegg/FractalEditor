@@ -93,8 +93,7 @@ public class CubeRenderer extends GlRenderer {
                     "  gl_FragColor = varColor;" +
                     "  if (selected == 0) { " +
                     "    gl_FragColor /= 1.3; " +
-                    "  } " +
-                    "  gl_FragColor.w = 1.0; " +                    
+                    "  } " +                    
                     "}";
 
         Log.d("CubeRenderer", "started initialize");
@@ -129,7 +128,7 @@ public class CubeRenderer extends GlRenderer {
             	for (int k = 0; k < 3; k++) {
                 	moreColors[i * 24 + j * 4 + k] = color[i * 4 + k] * 0.75f;
                 }
-                moreColors[i * 24 + j * 4 + 3] = 0.5f;
+                moreColors[i * 24 + j * 4 + 3] = 1.0f;
                 //Log.d("cubeRenderer", String.format("Color %d is (%f, %f, %f, %f)", i*6 + j, moreColors[i * 24 + j * 4], moreColors[i * 24 + j * 4 + 1], moreColors[i * 24 + j * 4 + 2], moreColors[i * 24 + j * 4 + 3]));
         	}
         }

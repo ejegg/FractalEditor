@@ -1,25 +1,27 @@
 package com.ejegg.fractaldisplay;
 
-import java.nio.FloatBuffer;
 import java.util.Arrays;
 
-import com.ejegg.fractaldisplay.persist.FractalState;
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
-public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.StateChangeSubscriber, OnClickListener {
+public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, OnClickListener {
 
 	private ProgressBar progressBar;
 	private FractalStateManager stateManager;
+	private static final int LOAD_REQUEST = 1;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +31,7 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		
 		FractalDisplay appContext = (FractalDisplay)getApplicationContext();
 		stateManager = appContext.getStateManager();
+		stateManager.setCalculationListener(this);
 		setEditButtonState();
 		
 		Camera camera = appContext.getCamera();
@@ -36,18 +39,8 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		
 		FractalDisplayView view = (FractalDisplayView)findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
-		
         progressBar = (ProgressBar)findViewById(R.id.computeProgress);
-		if (stateManager.getFractalPoints() != null) {
-			progressBar.setVisibility(View.GONE);
-		} else {
-			recalculatePoints(stateManager.getState());
-		}
-	}
-
-	private void recalculatePoints(FractalState state) {
-		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(state, stateManager.getNumPoints());
-		new FractalCalculatorTask(this).execute(request);
+        
 	}
 
 	private void setButtons() {
@@ -75,19 +68,13 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	}
 
 	public void progressed(int progress) {
+		progressBar.setVisibility(View.VISIBLE);
 		this.progressBar.setProgress(progress);
 	}
 
 	@Override
-	public void finished(FloatBuffer points) {
-		Log.d("DisplayActivity", "GotPoints");
+	public void finished() {
 		progressBar.setVisibility(View.GONE);
-		stateManager.setFractalPoints(points);
-	}
-
-	@Override
-	public void updateState(FractalState newState, boolean undoEnabled) {
-		recalculatePoints(newState);
 	}
 
 	@Override
@@ -98,6 +85,10 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 				stateManager.setEditMode(newEditMode);
 				setEditButtonState();
 				break;
+			case R.id.loadButton:
+				Intent loadTntent = new Intent(this, LoadActivity.class);
+            	startActivityForResult(loadTntent, LOAD_REQUEST);
+            	break;
 			default:
 				break;
 		}
@@ -105,5 +96,23 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	
 	private void setEditButtonState() {
 		((EditButton)findViewById(R.id.modeButton)).setEditMode(stateManager.getEditMode());
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		Log.d("main", "onActivityResult");
+		switch(requestCode) {
+			case LOAD_REQUEST: 
+				if (resultCode != RESULT_OK) {
+					Toast.makeText(this, "No saved fractal loaded", Toast.LENGTH_LONG).show();
+					return;
+				}
+				Uri savedFractalUri = data.getData();
+				Log.d("main", "trying to load fractal with URI: " + savedFractalUri);
+				stateManager.loadStateFromUri(getContentResolver(), savedFractalUri);
+				break;
+		}
+
 	}
 }
