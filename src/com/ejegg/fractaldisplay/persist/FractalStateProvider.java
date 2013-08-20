@@ -16,7 +16,7 @@ import android.provider.BaseColumns;
 import com.ejegg.fractaldisplay.R;
 
 public class FractalStateProvider extends ContentProvider {
-//lots of this is from the npr android app, apache licensed
+//lots of this is adapted from the npr android app, apache licensed (can be added to GPLv3 projects)
 	private FractalDatabaseHelper helper;
 	public static final Uri CONTENT_URI = Uri.parse("content://com.ejegg.fractaldisplay.persist.FractalState");
 	private static final String DATABASE_NAME = "fractaleditor";

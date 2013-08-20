@@ -65,12 +65,8 @@ public class CubeRenderer extends GlRenderer {
     private int transformMatrixHandle;      
     private int colorHandle;
     private int positionHandle;
-    private FractalStateManager stateManager;
-    private Camera camera;
-
     public CubeRenderer(Camera camera, FractalStateManager stateManager) {
-        this.camera = camera;
-        this.stateManager = stateManager;
+        super(camera, stateManager);
         setColors();
         setPoints();
         
@@ -147,7 +143,7 @@ public class CubeRenderer extends GlRenderer {
         int numTransforms = state.getNumTransforms();
         int selectedTransform = state.getSelectedTransform();
         float[][] transforms = state.getTransforms();
-        
+        GLES20.glEnable( GLES20.GL_DEPTH_TEST );
         GLES20.glUseProgram(programHandle);
         //checkGlError("CubeRenderer", "glUseProgram");
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);

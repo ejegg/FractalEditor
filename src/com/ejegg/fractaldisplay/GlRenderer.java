@@ -1,5 +1,8 @@
 package com.ejegg.fractaldisplay;
 
+import com.ejegg.fractaldisplay.persist.FractalStateManager;
+import com.ejegg.fractaldisplay.spatial.Camera;
+
 import android.opengl.GLES20;
 import android.util.Log;
 
@@ -11,9 +14,16 @@ public abstract class GlRenderer {
 	protected int programHandle;
 	protected int vertexShaderHandle;
 	protected int fragmentShaderHandle;
+	protected Camera camera;
+	protected FractalStateManager stateManager;
 	
 	public static final int COORDS_PER_VERTEX = 3;
 	public static final int VERTEX_STRIDE = COORDS_PER_VERTEX * 4;
+	
+	protected GlRenderer(Camera camera, FractalStateManager stateManager) {
+		this.camera = camera;
+		this.stateManager = stateManager;
+	}
 	
 	protected void setShaders() {
 		vertexShaderHandle = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);

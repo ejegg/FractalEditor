@@ -9,7 +9,7 @@ public class Camera {
     private final float[] mInverseProjectionMatrix = new float[16];
     private boolean inverseProjectionNeedsRecalculating = true;
     private final float[] mVMatrix = new float[16];
-    private final float[] eyePosition = {0, 0, -8};
+    private final float[] eyePosition = {0, 0, 9};
     private final float[] lookAt = {0, 0, 0};
     private final float[] up = {0, 1, 0, 1};
     private float[] mRotationAxis = new float[4];
@@ -20,6 +20,7 @@ public class Camera {
 	private static final float MIN_ROTATE_SPEED = 0.01f;
 	private int width;
 	private int height;
+	private long lastMoveId = 0;
 	
 	public Camera() {
 		mRotationVelocity = 0;
@@ -35,11 +36,6 @@ public class Camera {
 	
 	public boolean isMoving() {
 		return mRotationVelocity != 0;
-	}
-	
-	public void setRotation(float[] rotationAxis, float speed) {
-		mRotationAxis = rotationAxis;
-		mRotationVelocity = speed;
 	}
 	
 	public void spinStep() { //TODO: use time-based rotation instead of step-based
@@ -92,6 +88,14 @@ public class Camera {
 		return mMVPMatrix;
 	}
 	
+	public int getWidth() {
+		return width;
+	}
+	
+	public int getHeight() {
+		return height;
+	}
+	
 	public void setScreenDimensions(int width, int height){
 		this.width = width;
 		this.height = height;
@@ -113,6 +117,11 @@ public class Camera {
         
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
         inverseProjectionNeedsRecalculating = true;
+        lastMoveId++;
+	}
+	
+	public long getLastMoveId() {
+		return lastMoveId;
 	}
 
 	public float[] getInverseProjectionMatrix() {

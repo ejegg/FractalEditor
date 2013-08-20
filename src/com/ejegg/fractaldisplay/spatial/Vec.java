@@ -1,7 +1,5 @@
 package com.ejegg.fractaldisplay.spatial;
 
-import android.util.FloatMath;
-
 public class Vec {
 
 	public static void cross(float[] result, float[] vec1, float[] vec2)
@@ -30,19 +28,19 @@ public class Vec {
 		result[2] = vec1[2] + vec2[2];
 	}
 
-	public static float magnitude(float[] vector)
+	public static double magnitude(float[] vector)
 	{
 		float total = 0f;
 		for (int i = 0; i < vector.length && i < 3; i++){
 			total += vector[i] * vector[i];
 		}
-		return FloatMath.sqrt(total);
+		return Math.sqrt(total);
 	}
 
 	public static void normalize(float[] vector)
 	{
-		float mag = magnitude(vector);
-		if (mag == 0.0f) 
+		double mag = magnitude(vector);
+		if (mag == 0.0) 
 			return;
 		
 		mag = 1/mag;

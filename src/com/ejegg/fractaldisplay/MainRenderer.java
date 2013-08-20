@@ -14,6 +14,7 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 
 	private FractalRenderer fractalRenderer;
 	private CubeRenderer cubeRenderer;
+	private TextureRenderer textureRenderer;
 	private Camera camera;
 	private FractalStateManager stateManager;
 	
@@ -24,15 +25,26 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 	
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+		boolean moving = camera.isMoving();
+		
 		if (stateManager.getEditMode()) {
+			clear();
 			cubeRenderer.draw();
-		} else {
+		} else if (moving) {
+			clear();
 			fractalRenderer.draw();
+		} else {
+			textureRenderer.preRender();
+			fractalRenderer.draw();
+			textureRenderer.draw();
 		}
-		if (camera.isMoving()) {
-			camera.spinStep(); //TODO: make this time-based instead of frame based
+		if (moving) {
+			camera.spinStep();
 		}
+	}
+	
+	private void clear() {
+		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 	}
 
 	@Override
@@ -40,6 +52,10 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		Log.d("MainRenderer", "onSurfaceChanged");
 		GLES20.glViewport(0, 0, width, height);
 		camera.setScreenDimensions(width,height);
+		if (textureRenderer != null) {
+			textureRenderer.freeResources();
+		}
+		textureRenderer = new TextureRenderer(camera, stateManager);
 		Log.d("MainRenderer", "Done onSurfaceChanged");
 	}
 
@@ -56,8 +72,9 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		GLES20.glDepthMask( true );
     	GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
-		this.fractalRenderer = new FractalRenderer(camera, stateManager);
-		this.cubeRenderer = new CubeRenderer(camera, stateManager);
+		fractalRenderer = new FractalRenderer(camera, stateManager);
+		cubeRenderer = new CubeRenderer(camera, stateManager);
+		
 		Log.d("MainRenderer", "Done onSurfaceCreated");
 	}
 }
