@@ -48,8 +48,6 @@ public abstract class GlRenderer {
 		GLES20.glDeleteProgram(programHandle);
 	}
 
-	public abstract void draw();
-	
 	protected void checkGlError(String TAG, String op) {
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {

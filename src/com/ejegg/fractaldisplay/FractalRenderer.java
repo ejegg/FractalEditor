@@ -51,7 +51,7 @@ public class FractalRenderer extends GlRenderer {
     	maxPoints = GLES20.GL_MAX_VERTEX_ATTRIBS - 25;
     }
         
-    public void draw() {
+    public void draw(boolean accumulate) {
     	if (!stateManager.hasPoints()) {
     		if (!stateManager.isRecalculating()) {
     			stateManager.recalculatePoints(true);
@@ -61,7 +61,6 @@ public class FractalRenderer extends GlRenderer {
     	int numPoints = stateManager.getNumPoints();
     	int drawPoints = Math.min(maxPoints, numPoints);
     	float[] mvpMatrix = camera.getMVPMatrix();
-    	boolean accumulate = !camera.isMoving();
     	GLES20.glUseProgram(programHandle);
 
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);

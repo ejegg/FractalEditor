@@ -1,12 +1,20 @@
 package com.ejegg.fractaldisplay.spatial;
 
+import android.opengl.Matrix;
 import android.util.Log;
 
 public class RayCubeIntersection {
 	private float minA = NO_INTERSECTION;
 	public static final float NO_INTERSECTION = 999999f;
 	
-	public RayCubeIntersection(float[] near, float[] far) {
+	public RayCubeIntersection(float[] origNear, float[] origFar, float[] transform) {
+		float[] inverse = new float[16];
+		float[] near = new float[4];
+		float[] far = new float[4];
+		Matrix.invertM(inverse, 0, transform, 0);
+		Matrix.multiplyMV(near, 0, inverse, 0, origNear, 0);
+		Matrix.multiplyMV(far, 0, inverse, 0, origFar, 0);
+		
 		intersect(near[0], far[0], near[1], far[1], near[2], far[2], -1.0f);
 		intersect(near[0], far[0], near[1], far[1], near[2], far[2], 1.0f);
 		intersect(near[1], far[1], near[2], far[2], near[0], far[0], -1.0f);

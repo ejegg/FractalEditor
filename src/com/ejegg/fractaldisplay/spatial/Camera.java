@@ -17,7 +17,8 @@ public class Camera {
     private float zoom = 1;
     private float ratio;
     private static final float DECELERATION = 0.95f;
-	private static final float MIN_ROTATE_SPEED = 0.01f;
+	private static final float MIN_ROTATE_SPEED = 0.05f;
+	private static final float TURN_SCALE = 0.2f;
 	private int width;
 	private int height;
 	private long lastMoveId = 0;
@@ -39,10 +40,21 @@ public class Camera {
 	}
 	
 	public void spinStep() { //TODO: use time-based rotation instead of step-based
+		rotateAroundOrigin(mRotationVelocity);
+		
+        mRotationVelocity *= DECELERATION;
+        
+        if (Math.abs(mRotationVelocity) < MIN_ROTATE_SPEED) {
+        	stop();
+        }
+	}
+
+	private void rotateAroundOrigin(float angle) {
+		//TODO: should maybe rotate around look at point instead
 		float[] newRotate = new float[16];
 		Matrix.setIdentityM(newRotate, 0);
 		
-		Matrix.rotateM(newRotate, 0, mRotationVelocity, mRotationAxis[0], mRotationAxis[1], mRotationAxis[2]);
+		Matrix.rotateM(newRotate, 0, angle, mRotationAxis[0], mRotationAxis[1], mRotationAxis[2]);
 		float[] newVec = new float[4];
 		
 		Matrix.multiplyMV(newVec, 0, newRotate, 0, up, 0);
@@ -53,15 +65,9 @@ public class Camera {
 		
 		Vec.add(eyePosition, lookAt, newVec);
 		setViewMatrix();
-		
-        mRotationVelocity *= DECELERATION;
-        
-        if (Math.abs(mRotationVelocity) < MIN_ROTATE_SPEED) {
-        	stop();
-        }
 	}
 	
-	private float[] intoScreen() {
+	public float[] intoScreen() {
 		return new float[] {lookAt[0] - eyePosition[0], lookAt[1] - eyePosition[1], lookAt[2] - eyePosition[2]};
 	}
 	
@@ -133,6 +139,12 @@ public class Camera {
 	}
 	
 	public void spin(float dX, float dY, float velocity) {
+		setRotationVector(dX, dY);
+		mRotationVelocity = velocity;
+		Log.d("Camera", String.format("Flung! axis is (%f, %f, %f), velocity is %f",mRotationAxis[0], mRotationAxis[1], mRotationAxis[2], mRotationVelocity));
+	}
+
+	private void setRotationVector(float dX, float dY) {
 		float[] intoScreen = intoScreen();
 		float[] right = new float[3];
 		Vec.cross(right,  intoScreen, up);
@@ -141,8 +153,6 @@ public class Camera {
 		float[] gestureVector = new float[] {normX * right[0] + normY * up[0], normX * right[1] + normY * up[1], normX * right[2] + normY * up[2]};
 		Vec.cross(mRotationAxis, intoScreen, gestureVector);
 		Vec.normalize(mRotationAxis);
-		mRotationVelocity = velocity;
-		Log.d("Camera", String.format("Flung! axis is (%f, %f, %f), velocity is %f",mRotationAxis[0], mRotationAxis[1], mRotationAxis[2], mRotationVelocity));
 	}
 	
 	public void getTouchRay(float[] nearPoint, float[] farPoint, float x, float y)
@@ -175,5 +185,12 @@ public class Camera {
 		coords[1] = nearPoint[1] + t * (farPoint[1] - nearPoint[1] );
 		coords[2] = z;
 		coords[3] = 1.0f;
+	}
+
+	public void turn(float dX, float dY) {
+		setRotationVector(dX, dY);
+		float deg = (float)Math.sqrt(dX * dX + dY * dY) * TURN_SCALE;
+		Log.d("Camera", "turning " + deg);
+		rotateAroundOrigin(deg);
 	}
 }

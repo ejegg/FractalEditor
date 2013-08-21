@@ -17,7 +17,7 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 	private FractalDisplay appContext;
 	private FractalStateManager stateManager;
 	private Camera camera;
-
+	private MainRenderer renderer;
 	
 	public FractalDisplayView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -29,6 +29,12 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 		stateManager = appContext.getStateManager();
 	}
 
+	@Override
+	public void setRenderer(GLSurfaceView.Renderer renderer) {
+		super.setRenderer(renderer);
+		this.renderer = (MainRenderer)renderer;
+	}
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
 		//Log.d("FractalDisplayView", "onTouch");
@@ -43,33 +49,55 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 	public void tap(float screenX, float screenY) {
 		if (camera.isMoving()) {
 			camera.stop();
-		} else if (stateManager.getEditMode()) {
-			select(screenX, screenY);
-		}
+		} 
+		select(screenX, screenY);
 	}
 
 	@Override
 	public void longPress(float screenX, float screenY) {
-		// TODO Auto-generated method stub
-		
+		select(screenX, screenY);
 	}
 
 	@Override
 	public void drag(float oldScreenX, float oldScreenY, float newScreenX,
 			float newScreenY) {
-		// TODO Auto-generated method stub
-		
+		Log.d("View", "drag");
+		if (manipulating()) {
+			float[] oldNear = new float[4];
+			float[] oldFar = new float[4];
+			camera.getTouchRay(oldNear, oldFar, oldScreenX, oldScreenY);
+			
+			float[] newNear = new float[4];
+			float[] newFar = new float[4];
+			camera.getTouchRay(newNear, newFar, newScreenX, newScreenY);
+			
+			stateManager.moveSelectedTransform(oldNear, oldFar, newNear, newFar);
+		} else { 
+			camera.turn(newScreenX - oldScreenX, oldScreenY - newScreenY);
+		}
 	}
 
 	@Override
 	public void scale(float scaleFactor, float spanX, float spanY) {
-		camera.scale(scaleFactor);		
+		if (manipulating()) {
+			float[] focus = new float[4];
+			float[] endPoint = new float[4];
+			camera.getTouchPoint(focus, 0, 0, 0);
+			camera.getTouchPoint(endPoint, spanX, spanY, 0);
+			stateManager.scaleSelectedTransform(scaleFactor, focus, endPoint);
+		} else {
+			camera.scale(scaleFactor);
+		}
 	}
 
 	@Override
 	public void rotate(float angle, float focusScreenX, float focusScreenY) {
 		Log.d("Camera", "Rotating " + angle);
-		camera.rotate(angle);
+		if (manipulating()) {
+			stateManager.rotateSelectedTransform(angle, camera.intoScreen());
+		} else {
+			camera.rotate(angle);
+		}
 	}
 
 	@Override
@@ -80,14 +108,19 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 
 	@Override
 	public void down() {
-		// TODO Auto-generated method stub
-		
+		renderer.setScreenTouched(true);
+		Log.d("FractalDisplayView", "down");
+		if (manipulating()) {
+			stateManager.startManipulation();
+		}
 	}
 
 	@Override
 	public void up() {
-		// TODO Auto-generated method stub
-		
+		renderer.setScreenTouched(false);
+		if (manipulating()) {
+			stateManager.finishManipulation();
+		}
 	}
 	
 	private void select(float screenX, float screenY) {
@@ -95,5 +128,11 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
         float[] farPoint = new float[4];
 		camera.getTouchRay(nearPoint, farPoint, screenX, screenY);
 		stateManager.select(nearPoint, farPoint);
+	}
+	
+	private boolean manipulating() {
+		Log.d("FractalDisplayView", "Edit mode is : " + stateManager.isEditMode());
+		Log.d("FractalDisplayView", "selected is : " + stateManager.getState().anyTransformSelected());
+		return stateManager.isEditMode() && stateManager.getState().anyTransformSelected();
 	}
 }

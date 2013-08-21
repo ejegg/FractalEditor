@@ -17,6 +17,7 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 	private TextureRenderer textureRenderer;
 	private Camera camera;
 	private FractalStateManager stateManager;
+	private boolean screenTouched = false;
 	
 	public MainRenderer(Camera camera, FractalStateManager stateManager) {
 		this.camera = camera;
@@ -25,20 +26,19 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 	
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		boolean moving = camera.isMoving();
 		
-		if (stateManager.getEditMode()) {
+		if (stateManager.isEditMode()) {
 			clear();
 			cubeRenderer.draw();
-		} else if (moving) {
+		} else if (camera.isMoving() || screenTouched) {
 			clear();
-			fractalRenderer.draw();
+			fractalRenderer.draw(false);
 		} else {
 			textureRenderer.preRender();
-			fractalRenderer.draw();
+			fractalRenderer.draw(true);
 			textureRenderer.draw();
 		}
-		if (moving) {
+		if (camera.isMoving()) {
 			camera.spinStep();
 		}
 	}
@@ -76,5 +76,9 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		cubeRenderer = new CubeRenderer(camera, stateManager);
 		
 		Log.d("MainRenderer", "Done onSurfaceCreated");
+	}
+
+	public void setScreenTouched(boolean screenTouched) {
+		this.screenTouched = screenTouched;
 	}
 }

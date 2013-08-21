@@ -22,13 +22,19 @@ public class FractalStateManager implements ResultListener {
     private boolean editMode = false;
     private boolean recalculating = false;    
 	private Stack<FractalState> undoStack = new Stack<FractalState>();
-	private List<StateChangeSubscriber> changeSubscribers = new ArrayList<StateChangeSubscriber>();
-	private List<ModeChangeSubscriber> modeSubscribers = new ArrayList<ModeChangeSubscriber>();
+	private boolean uniformScaleMode = true;
+	
+	private List<ModeChangeListener> modeChangeListeners = new ArrayList<ModeChangeListener>();
 	private FractalCalculatorTask.ProgressListener calculationListener;
+	private FractalState lastState = null;
     private FractalState State = new FractalState(4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " + 
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
+
+	public interface ModeChangeListener {
+		void updateMode();
+	}
     
 	public int getNumPoints() {
 		return numPoints;
@@ -54,28 +60,51 @@ public class FractalStateManager implements ResultListener {
 		return false;
 	}
 	
-	public boolean getUndoEnabled() {
-		return false;
+	public boolean isUndoEnabled() {
+		return !undoStack.empty();
 	}
 	
-	public boolean getEditMode() {
+	public boolean isEditMode() {
 		return editMode;
 	}
 	
-	public void setEditMode(boolean isEditMode) {
-		editMode = isEditMode;
+	public void toggleEditMode() {
+		editMode = !editMode;
+		notifyModeChangeListeners();
+	}
+	
+	public boolean isUniformScaleMode() {
+		return uniformScaleMode;
+	}
+	
+	public void toggleScaleMode() {
+		uniformScaleMode = !uniformScaleMode;
+		notifyModeChangeListeners();
 	}
 	
 	public void undo() {
-		
-	}
-	
-	public interface StateChangeSubscriber {
-		void updateState(FractalState newState, boolean undoEnabled);
+		if (!undoStack.empty()) {
+			State = undoStack.pop();
+		}
+		if (undoStack.empty()) {
+			notifyModeChangeListeners();
+		}
 	}
 
-	public interface ModeChangeSubscriber {
-		void updateMode(boolean editMode);
+	private void notifyModeChangeListeners() {
+		for (ModeChangeListener sub : modeChangeListeners) {
+			if (sub != null) {
+				sub.updateMode();
+			}
+		}
+	}
+
+	public void addModeChangeListener(ModeChangeListener sub) {
+		modeChangeListeners.add(sub);
+	}
+
+	public void clearModeChangeListeners() {
+		modeChangeListeners.clear();
 	}
 	
 	public void loadStateFromUri(ContentResolver contentResolver, Uri savedFractalUri) {
@@ -112,8 +141,6 @@ public class FractalStateManager implements ResultListener {
 	}
 	
 	public void select(float[] nearPoint, float[] farPoint) {
-		float[] invNear = new float[4];
-		float[] invFar = new float[4];
 		float minA = RayCubeIntersection.NO_INTERSECTION;
 		float testA;
 		int mindex = FractalState.NO_CUBE_SELECTED;
@@ -123,17 +150,9 @@ public class FractalStateManager implements ResultListener {
 				
 		int transformCount = State.getNumTransforms();
 		float[][] transforms = State.getTransforms();
-		float[] inverse = new float[16];
 		
 		for (int i = 0; i< transformCount; i++) {
-			
-			Matrix.invertM(inverse, 0, transforms[i], 0);
-			Matrix.multiplyMV(invNear, 0, inverse, 0, nearPoint, 0);
-			Matrix.multiplyMV(invFar, 0, inverse, 0, farPoint, 0);
-			
-			RayCubeIntersection intersect = new RayCubeIntersection(invNear, invFar);  
-			
-			testA = intersect.getMinA();
+			testA = new RayCubeIntersection(nearPoint, farPoint, transforms[i]).getMinA();
 			
 			Log.d("View", "testA is " + testA);
 			if (testA < minA) {
@@ -143,5 +162,54 @@ public class FractalStateManager implements ResultListener {
 		}
 		
 		State.setSelectedTransform(mindex);
+	}
+	
+	public void startManipulation() {
+		Log.d("FractalStateManager", "starting manipulation");
+		lastState = State.clone();
+	}
+
+	public void finishManipulation() {
+		boolean needsModeNotification = false;
+		if (lastState != null && !State.equals(lastState)) {
+			if (undoStack.empty()) {
+				needsModeNotification = true;
+			}
+			undoStack.push(lastState);
+			fractalPoints = null;
+		}
+		if (needsModeNotification) {
+			notifyModeChangeListeners();
+		}
+	}
+	
+	public void addTransform() {
+		startManipulation();
+		State.addTransform();
+		finishManipulation();
+	}
+
+	public void removeSelectedTransform() {
+		startManipulation();
+		State.removeSelectedTransform();
+		finishManipulation();
+	}
+	
+	public void rotateSelectedTransform(float angle, float[] axis) {
+		State.rotateSelectedTransform(angle, axis);
+	}
+
+	public void scaleSelectedTransform(float scaleFactor, float[] focus,
+			float[] endPoint) {
+		if (uniformScaleMode) {
+			State.scaleUniform(scaleFactor);
+		} else {
+			State.scaleLinear(scaleFactor, focus, endPoint);
+		}
+	}
+
+	public void moveSelectedTransform(float[] oldNear, float[] oldFar,
+			float[] newNear, float[] newFar) {
+		State.moveSelectedTransform(oldNear, oldFar, newNear, newFar);
 	}
 }

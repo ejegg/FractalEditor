@@ -46,12 +46,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/ic_menu_remove" />
-            <Button
+            
+            <com.ejegg.fractaldisplay.ScaleModeButton
                 android:id="@+id/scaleModeButton"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/ic_menu_scale_uniform" />            
+                android:background="@drawable/scale" />
+                        
             <com.ejegg.fractaldisplay.EditButton
                 android:id="@+id/modeButton"
                 style="?android:attr/buttonStyleSmall"

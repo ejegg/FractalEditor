@@ -17,7 +17,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, OnClickListener {
+public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.ModeChangeListener, OnClickListener {
 
 	private ProgressBar progressBar;
 	private FractalStateManager stateManager;
@@ -32,7 +32,8 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 		FractalDisplay appContext = (FractalDisplay)getApplicationContext();
 		stateManager = appContext.getStateManager();
 		stateManager.setCalculationListener(this);
-		setEditButtonState();
+		stateManager.addModeChangeListener(this);
+		setButtonStates();
 		
 		Camera camera = appContext.getCamera();
 		MainRenderer mainRenderer = new MainRenderer(camera, stateManager);
@@ -42,7 +43,13 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
         progressBar = (ProgressBar)findViewById(R.id.computeProgress);
         
 	}
-
+	
+	@Override
+	protected void onDestroy() {
+		stateManager.clearModeChangeListeners();
+		super.onDestroy();
+	}
+	
 	private void setButtons() {
 	   	for (int id : Arrays.asList(R.id.loadButton, R.id.saveButton, R.id.undoButton, R.id.addButton, R.id.removeButton, R.id.modeButton, R.id.scaleModeButton)) {
 	   		Button button = (Button) findViewById(id);//who's got the button?
@@ -80,22 +87,34 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	@Override
 	public void onClick(View v) {
 		switch(v.getId()){
-			case R.id.modeButton:
-				boolean newEditMode = !stateManager.getEditMode(); 
-				stateManager.setEditMode(newEditMode);
-				setEditButtonState();
+			case R.id.modeButton: 
+				stateManager.toggleEditMode();
 				break;
 			case R.id.loadButton:
 				Intent loadTntent = new Intent(this, LoadActivity.class);
             	startActivityForResult(loadTntent, LOAD_REQUEST);
             	break;
+			case R.id.addButton:
+				stateManager.addTransform();
+				break;
+			case R.id.removeButton:
+				stateManager.removeSelectedTransform();
+				break;
+			case R.id.scaleModeButton:
+				stateManager.toggleScaleMode();
+				break;
+			case R.id.undoButton:
+				stateManager.undo();
+				break;
 			default:
 				break;
 		}
 	}
 	
-	private void setEditButtonState() {
-		((EditButton)findViewById(R.id.modeButton)).setEditMode(stateManager.getEditMode());
+	private void setButtonStates() {
+		((EditButton)findViewById(R.id.modeButton)).setEditMode(stateManager.isEditMode());
+		((ScaleModeButton)findViewById(R.id.scaleModeButton)).setScaleMode(stateManager.isUniformScaleMode());
+		((Button)findViewById(R.id.undoButton)).setEnabled(stateManager.isUndoEnabled());
 	}
 	
 	@Override
@@ -114,5 +133,10 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 				break;
 		}
 
+	}
+
+	@Override
+	public void updateMode() {
+		setButtonStates();
 	}
 }

@@ -10,9 +10,10 @@ import android.opengl.Matrix;
 import android.util.Log;
 
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
+import com.ejegg.fractaldisplay.persist.FractalStateManager.ModeChangeListener;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
-public class TextureRenderer extends GlRenderer {
+public class TextureRenderer extends GlRenderer implements ModeChangeListener {
 
 	private int[] frameBuffer;
 	private int[] depthRenderBuffer;
@@ -27,9 +28,10 @@ public class TextureRenderer extends GlRenderer {
 	private FloatBuffer pointBuffer, textureCoordinateBuffer;
 	private long lastCameraMoveId = 0;
 
-	
     public TextureRenderer(Camera camera, FractalStateManager stateManager) {
     	super(camera, stateManager);
+    	
+    	stateManager.addModeChangeListener(this);
     	
     	vertexShaderCode =
         	    "attribute vec4 vPosition; " +
@@ -153,7 +155,6 @@ public class TextureRenderer extends GlRenderer {
 		}
 	}
     
-	@Override
 	public void draw() {
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 		GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
@@ -200,5 +201,12 @@ public class TextureRenderer extends GlRenderer {
 		GLES20.glDeleteTextures(2, textures, 0);
 		GLES20.glDeleteFramebuffers(1, frameBuffer, 0);
 		destroy();
+	}
+
+	@Override
+	public void updateMode() {
+		if (stateManager.isEditMode()) {
+			clear();
+		}
 	}
 }
