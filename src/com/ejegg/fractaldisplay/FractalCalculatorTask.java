@@ -6,6 +6,7 @@ import java.nio.FloatBuffer;
 import java.util.Random;
 
 import com.ejegg.fractaldisplay.persist.FractalState;
+import com.ejegg.fractaldisplay.render.GlRenderer;
 
 import android.opengl.Matrix;
 import android.os.AsyncTask;

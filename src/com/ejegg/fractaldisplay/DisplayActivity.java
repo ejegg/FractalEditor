@@ -3,21 +3,27 @@ package com.ejegg.fractaldisplay;
 import java.util.Arrays;
 
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
+import com.ejegg.fractaldisplay.render.MainRenderer;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.ModeChangeListener, OnClickListener {
+public class DisplayActivity extends Activity implements FractalCalculatorTask.ProgressListener, FractalStateManager.ModeChangeListener, OnClickListener, DialogInterface.OnClickListener {
 
 	private ProgressBar progressBar;
 	private FractalStateManager stateManager;
@@ -106,6 +112,17 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 			case R.id.undoButton:
 				stateManager.undo();
 				break;
+			case R.id.saveButton:
+				Dialog d = new Dialog(this);
+				d.setContentView(R.layout.activity_save);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.title_activity_save)
+					.setView(getLayoutInflater().inflate(R.layout.activity_save, (ViewGroup) getCurrentFocus()))
+					.setPositiveButton(R.string.save_ok, this)
+					.setNegativeButton(R.string.save_cancel, this);
+				AlertDialog ad = builder.create();
+				ad.show();
+				break;
 			default:
 				break;
 		}
@@ -138,5 +155,20 @@ public class DisplayActivity extends Activity implements FractalCalculatorTask.P
 	@Override
 	public void updateMode() {
 		setButtonStates();
+	}
+
+	@Override
+	public void onClick(DialogInterface dialog, int which) {
+		switch (which) {
+		case DialogInterface.BUTTON_NEGATIVE:
+			Toast.makeText(this, "Canceled", Toast.LENGTH_SHORT).show();
+			break;
+		case DialogInterface.BUTTON_POSITIVE:
+			EditText t = (EditText) ((AlertDialog)dialog).findViewById(R.id.save_name_entry);
+			String name = t.getText().toString();
+			boolean success = stateManager.save(getContentResolver(), name);
+			Toast.makeText(this, success ? "Fractal saved" : "Error saving fractal", Toast.LENGTH_LONG).show();
+			break;
+		}
 	}
 }

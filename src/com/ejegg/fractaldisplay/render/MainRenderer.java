@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.fractaldisplay.render;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;

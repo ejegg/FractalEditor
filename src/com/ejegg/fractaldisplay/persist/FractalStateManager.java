@@ -10,9 +10,9 @@ import com.ejegg.fractaldisplay.FractalCalculatorTask.ResultListener;
 import com.ejegg.fractaldisplay.spatial.RayCubeIntersection;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import android.opengl.Matrix;
 import android.util.Log;
 
 public class FractalStateManager implements ResultListener {
@@ -54,10 +54,6 @@ public class FractalStateManager implements ResultListener {
 	
 	public FractalState getState() {
 		return State;
-	}
-	
-	public boolean save(FractalState fs) {
-		return false;
 	}
 	
 	public boolean isUndoEnabled() {
@@ -113,7 +109,24 @@ public class FractalStateManager implements ResultListener {
 		State = new FractalState(cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.TRANSFORM_COUNT)),
 				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS)));
 		cursor.close();
+		undoStack.clear();
 		fractalPoints = null;
+	}
+
+	public boolean save(ContentResolver contentResolver, String saveName) {
+		try {
+			ContentValues val = new ContentValues();
+			val.put(FractalStateProvider.Items.NAME, saveName);
+			val.put(FractalStateProvider.Items.TRANSFORM_COUNT, State.getNumTransforms());
+			val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, State.getSerializedTransforms());
+			val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());
+			contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
+		}
+		catch (Exception e) {
+			Log.d("fview", "Error saving: " + e.getMessage() + e.getStackTrace());
+			return false;
+		}
+		return true;
 	}
 
 	public void setCalculationListener(FractalCalculatorTask.ProgressListener calculationListener) {

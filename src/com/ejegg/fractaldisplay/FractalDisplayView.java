@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
+import com.ejegg.fractaldisplay.render.MainRenderer;
 import com.ejegg.fractaldisplay.spatial.Camera;
 import com.ejegg.fractaldisplay.touch.MotionEventHandler;
 import com.ejegg.fractaldisplay.touch.MotionEventSubscriber;

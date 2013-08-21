@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.fractaldisplay.render;
 
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
