@@ -6,15 +6,27 @@ import android.app.Application;
 
 public class FractalDisplay extends Application {
 	
-    private Camera Camera = new Camera();
-    private FractalStateManager stateManager = new FractalStateManager();
+    private Camera camera;
+    private MessagePasser messagePasser = new MessagePasser();
+    private FractalStateManager stateManager;
+    
+    @Override
+    public void onCreate() {
+    	super.onCreate();
+    	camera = new Camera(messagePasser);
+    	stateManager = new FractalStateManager(messagePasser);
+    }
     
 	public Camera getCamera() {
-		return Camera;
+		return camera;
 	}
 	
 	public FractalStateManager getStateManager() {
 		return stateManager;
+	}
+	
+	public MessagePasser getMessagePasser() {
+		return messagePasser;
 	}
     
 }

@@ -1,12 +1,12 @@
 package com.ejegg.fractaldisplay.persist;
 
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
 
 import com.ejegg.fractaldisplay.FractalCalculatorTask;
 import com.ejegg.fractaldisplay.FractalCalculatorTask.ResultListener;
+import com.ejegg.fractaldisplay.MessagePasser;
+import com.ejegg.fractaldisplay.MessagePasser.MessageType;
 import com.ejegg.fractaldisplay.spatial.RayCubeIntersection;
 
 import android.content.ContentResolver;
@@ -20,11 +20,14 @@ public class FractalStateManager implements ResultListener {
     private FloatBuffer fractalPoints = null;
     private FractalCalculatorTask calculator;
     private boolean editMode = false;
-    private boolean recalculating = false;    
+    private boolean recalculating = false;
+    private boolean continuousCalculation = false;
+    private int calculationRepeatCount = 0;
+    private static final int MAX_CALCULATION_REPEAT = 5;
 	private Stack<FractalState> undoStack = new Stack<FractalState>();
 	private boolean uniformScaleMode = true;
 	
-	private List<ModeChangeListener> modeChangeListeners = new ArrayList<ModeChangeListener>();
+	private MessagePasser messagePasser;
 	private FractalCalculatorTask.ProgressListener calculationListener;
 	private FractalState lastState = null;
     private FractalState State = new FractalState(4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
@@ -32,10 +35,10 @@ public class FractalStateManager implements ResultListener {
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " + 
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
 
-	public interface ModeChangeListener {
-		void updateMode();
+	public FractalStateManager(MessagePasser messagePasser) {
+		this.messagePasser = messagePasser;
 	}
-    
+	
 	public int getNumPoints() {
 		return numPoints;
 	}
@@ -66,7 +69,7 @@ public class FractalStateManager implements ResultListener {
 	
 	public void toggleEditMode() {
 		editMode = !editMode;
-		notifyModeChangeListeners();
+		sendMessage(MessagePasser.MessageType.EDIT_MODE_CHANGED, editMode);
 	}
 	
 	public boolean isUniformScaleMode() {
@@ -75,32 +78,17 @@ public class FractalStateManager implements ResultListener {
 	
 	public void toggleScaleMode() {
 		uniformScaleMode = !uniformScaleMode;
-		notifyModeChangeListeners();
+		sendMessage(MessagePasser.MessageType.SCALE_MODE_CHANGED, uniformScaleMode);
 	}
 	
 	public void undo() {
 		if (!undoStack.empty()) {
 			State = undoStack.pop();
+			stateChanged();
 		}
 		if (undoStack.empty()) {
-			notifyModeChangeListeners();
+			sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
 		}
-	}
-
-	private void notifyModeChangeListeners() {
-		for (ModeChangeListener sub : modeChangeListeners) {
-			if (sub != null) {
-				sub.updateMode();
-			}
-		}
-	}
-
-	public void addModeChangeListener(ModeChangeListener sub) {
-		modeChangeListeners.add(sub);
-	}
-
-	public void clearModeChangeListeners() {
-		modeChangeListeners.clear();
 	}
 	
 	public void loadStateFromUri(ContentResolver contentResolver, Uri savedFractalUri) {
@@ -110,7 +98,8 @@ public class FractalStateManager implements ResultListener {
 				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS)));
 		cursor.close();
 		undoStack.clear();
-		fractalPoints = null;
+		sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
+		stateChanged();
 	}
 
 	public boolean save(ContentResolver contentResolver, String saveName) {
@@ -130,30 +119,44 @@ public class FractalStateManager implements ResultListener {
 	}
 
 	public void setCalculationListener(FractalCalculatorTask.ProgressListener calculationListener) {
+		calculationRepeatCount = 0; //reset redraw count on orientation change 
 		this.calculationListener = calculationListener;
-		if (calculator != null) {
+		if (calculator != null && !continuousCalculation) {
 			calculator.setProgressListener(calculationListener);
 		}
 	}
 	
-	public void recalculatePoints(boolean showProgress) {
+	public void recalculatePoints() {
+		if (recalculating) return;
+		
 		recalculating = true;		
 		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(State, numPoints);
-		calculator = new FractalCalculatorTask(showProgress ? calculationListener : null, this);
+		calculator = new FractalCalculatorTask(fractalPoints == null ? calculationListener : null, this);
 		calculator.execute(request);
 	}
 
 	@Override
 	public void finished(FloatBuffer points) {
+		boolean accumulatedPoints = (fractalPoints != null);
 		this.fractalPoints = points;
-		recalculating = false;		
+		recalculating = false;
+		if (continuousCalculation) {
+			calculationRepeatCount++;
+			if (calculationRepeatCount >= MAX_CALCULATION_REPEAT) {
+				calculationRepeatCount = 0;
+				setContinuousCalculation(false);
+			} else {
+				recalculatePoints();
+			}
+		}
+		sendMessage(MessagePasser.MessageType.NEW_POINTS_AVAILABLE, accumulatedPoints);
 	}
 	
 	public boolean isRecalculating() {
 		return recalculating;
 	}
 	
-	public void select(float[] nearPoint, float[] farPoint) {
+	public boolean select(float[] nearPoint, float[] farPoint) {
 		float minA = RayCubeIntersection.NO_INTERSECTION;
 		float testA;
 		int mindex = FractalState.NO_CUBE_SELECTED;
@@ -175,6 +178,8 @@ public class FractalStateManager implements ResultListener {
 		}
 		
 		State.setSelectedTransform(mindex);
+		sendMessage(MessageType.STATE_CHANGING, true);
+		return State.anyTransformSelected();
 	}
 	
 	public void startManipulation() {
@@ -183,16 +188,13 @@ public class FractalStateManager implements ResultListener {
 	}
 
 	public void finishManipulation() {
-		boolean needsModeNotification = false;
+		boolean undoWasEmpty = undoStack.empty();
 		if (lastState != null && !State.equals(lastState)) {
-			if (undoStack.empty()) {
-				needsModeNotification = true;
-			}
 			undoStack.push(lastState);
-			fractalPoints = null;
+			stateChanged();
 		}
-		if (needsModeNotification) {
-			notifyModeChangeListeners();
+		if (undoWasEmpty && !undoStack.empty()) {
+			sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, true);
 		}
 	}
 	
@@ -210,6 +212,7 @@ public class FractalStateManager implements ResultListener {
 	
 	public void rotateSelectedTransform(float angle, float[] axis) {
 		State.rotateSelectedTransform(angle, axis);
+		sendMessage(MessageType.STATE_CHANGING, true);
 	}
 
 	public void scaleSelectedTransform(float scaleFactor, float[] focus,
@@ -219,10 +222,38 @@ public class FractalStateManager implements ResultListener {
 		} else {
 			State.scaleLinear(scaleFactor, focus, endPoint);
 		}
+		sendMessage(MessageType.STATE_CHANGING, true);
 	}
 
 	public void moveSelectedTransform(float[] oldNear, float[] oldFar,
 			float[] newNear, float[] newFar) {
 		State.moveSelectedTransform(oldNear, oldFar, newNear, newFar);
+		sendMessage(MessageType.STATE_CHANGING, true);
+	}
+
+	public boolean isContinuousCalculation() {
+		return continuousCalculation;
+	}
+
+	public void setContinuousCalculation(boolean continuousCalculation) {
+		if (continuousCalculation != this.continuousCalculation) {
+			calculationRepeatCount = 0;
+			sendMessage(MessageType.ACCUMULATION_MOTION_CHANGED, continuousCalculation);
+		}
+		this.continuousCalculation = continuousCalculation;
+		if (continuousCalculation && !isEditMode()) {
+			recalculatePoints();
+		}
+	}
+	
+	private void stateChanged() {
+		sendMessage(MessagePasser.MessageType.STATE_CHANGED, true);
+		fractalPoints = null;
+	}
+	
+	private void sendMessage(MessagePasser.MessageType type, boolean value) {
+		if (messagePasser != null) {
+			messagePasser.SendMessage(type, value);
+		}
 	}
 }

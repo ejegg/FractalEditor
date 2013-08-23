@@ -30,19 +30,19 @@ public class RayCubeIntersection {
 	private void intersect(float n1, float f1, float n2, float f2, float n3, float f3, float dist) {
 		float d1 = n1 - f1;
 		if (d1 == 0.0f) {
-			Log.d("intersection", "d1 is zero");
+			//Log.d("intersection", "d1 is zero");
 			return;
 		}
 		float a = (n1 - dist) / d1;
-		Log.d("intersection", "a is " + a);
+		//Log.d("intersection", "a is " + a);
 		float z2 = n2 + a * (f2 - n2);
 		if (z2 > 1.0f || z2 < -1.0f) {
-			Log.d("intersection", "z2 is " + z2);
+			//Log.d("intersection", "z2 is " + z2);
 			return;
 		}
 		float z3 = n3 + a * (f3 - n3);
 		if (z3 > 1.0f || z3 < -1.0f) {
-			Log.d("intersection", "z3 is " + z3);
+			//Log.d("intersection", "z3 is " + z3);
 			return;
 		}
 		if (a < minA) {

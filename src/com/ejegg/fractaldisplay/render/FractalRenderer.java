@@ -14,7 +14,9 @@ public class FractalRenderer extends GlRenderer {
 	private int positionHandle;
 	private int startIndex = 0;
 	private int maxPoints = 0;
+	private int bufferIndex = 0;
 	private float color[] = { 0.35f, 1.0f, 0.3f, 1.0f };
+	private static final int BUFFER_MULTIPLE = 3;
     
     public FractalRenderer(Camera camera, FractalStateManager stateManager) {
     	super(camera, stateManager);
@@ -49,13 +51,16 @@ public class FractalRenderer extends GlRenderer {
     	positionHandle = GLES20.glGetAttribLocation(programHandle, "vPosition");
     	fadeHandle = GLES20.glGetUniformLocation(programHandle, "fade");    	
     	maxPoints = GLES20.GL_MAX_VERTEX_ATTRIBS - 25;
+    	stateManager.setNumPoints(maxPoints * BUFFER_MULTIPLE);
     }
-        
-    public void draw(boolean accumulate) {
+    
+    public int getBufferIndex() {
+    	return bufferIndex;
+    }
+    
+    public void draw(boolean accumulatePoints) {
     	if (!stateManager.hasPoints()) {
-    		if (!stateManager.isRecalculating()) {
-    			stateManager.recalculatePoints(true);
-    		}
+    		stateManager.recalculatePoints();
     		return;
     	}
     	int numPoints = stateManager.getNumPoints();
@@ -72,20 +77,17 @@ public class FractalRenderer extends GlRenderer {
 
     	GLES20.glUniform4fv(colorHandle, 1, color, 0);
     	
-    	GLES20.glUniform1i(fadeHandle, accumulate ? 1 : 0);
+    	GLES20.glUniform1i(fadeHandle, accumulatePoints ? 1 : 0);
     	
     	GLES20.glDrawArrays(GLES20.GL_POINTS, startIndex, drawPoints);
     	
     	GLES20.glDisableVertexAttribArray(positionHandle);
     	
-    	if (accumulate) {
-    		startIndex += drawPoints;
-    		if (startIndex + drawPoints > numPoints) {
-    			startIndex = startIndex - numPoints + drawPoints;
-    			if (!stateManager.isRecalculating()) {
-    				stateManager.recalculatePoints(false);
-    			}
-    		}
+    	if (accumulatePoints) {
+    		bufferIndex = (bufferIndex + 1) % BUFFER_MULTIPLE;
+    		startIndex = maxPoints * bufferIndex; 
+    	} else {
+    		bufferIndex = 0;
     	}
     }
 }

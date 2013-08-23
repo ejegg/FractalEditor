@@ -17,6 +17,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     private final Random r = new Random();
     private ProgressListener progressListener;
     private ResultListener resultListener;
+    private static final int DISCARD_COUNT = 10;
     
     public FractalCalculatorTask(ProgressListener progressListener, ResultListener resultListener) {
     	this.progressListener  = progressListener;
@@ -38,12 +39,18 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
 		float[] fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
         int progressStep = numPoints / 25;
         
+        boolean discard = true;
+        
     	for (int i = 0; i< numPoints; i++) {
     		float[] transform = transforms[r.nextInt(numTransforms)];
     		int srpPos = i * GlRenderer.COORDS_PER_VERTEX;
     		Matrix.multiplyMV(fractalPoints, srpPos, transform, 0, currentPoint, 0);
     		System.arraycopy(fractalPoints, srpPos, currentPoint, 0, GlRenderer.COORDS_PER_VERTEX);
     		
+    		if (discard && i == DISCARD_COUNT) {
+    			i = 0;
+    			discard = false;
+    		}
     		if (i % progressStep == 0) {
     			//Log.d("FractalCalculatorTask", "progress at " + (i * 100 / numPoints));
     			publishProgress(i * 100 / numPoints);

@@ -9,11 +9,12 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import com.ejegg.fractaldisplay.MessagePasser;
+import com.ejegg.fractaldisplay.MessagePasser.MessageType;
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.persist.FractalStateManager.ModeChangeListener;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
-public class TextureRenderer extends GlRenderer implements ModeChangeListener {
+public class TextureRenderer extends GlRenderer implements MessagePasser.MessageListener {
 
 	private int[] frameBuffer;
 	private int[] depthRenderBuffer;
@@ -28,10 +29,10 @@ public class TextureRenderer extends GlRenderer implements ModeChangeListener {
 	private FloatBuffer pointBuffer, textureCoordinateBuffer;
 	private long lastCameraMoveId = 0;
 
-    public TextureRenderer(Camera camera, FractalStateManager stateManager) {
+    public TextureRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer) {
     	super(camera, stateManager);
     	
-    	stateManager.addModeChangeListener(this);
+    	passer.Subscribe(this, MessagePasser.MessageType.STATE_CHANGED, MessagePasser.MessageType.EDIT_MODE_CHANGED);
     	
     	vertexShaderCode =
         	    "attribute vec4 vPosition; " +
@@ -204,9 +205,7 @@ public class TextureRenderer extends GlRenderer implements ModeChangeListener {
 	}
 
 	@Override
-	public void updateMode() {
-		if (stateManager.isEditMode()) {
-			clear();
-		}
+	public void ReceiveMessage(MessageType t, boolean value) {
+		clear();
 	}
 }

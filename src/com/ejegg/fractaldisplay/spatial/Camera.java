@@ -1,5 +1,8 @@
 package com.ejegg.fractaldisplay.spatial;
 
+import com.ejegg.fractaldisplay.MessagePasser;
+import com.ejegg.fractaldisplay.MessagePasser.MessageType;
+
 import android.opengl.Matrix;
 import android.util.Log;
 
@@ -22,8 +25,10 @@ public class Camera {
 	private int width;
 	private int height;
 	private long lastMoveId = 0;
+	private MessagePasser messagePasser;
 	
-	public Camera() {
+	public Camera(MessagePasser passer) {
+		this.messagePasser= passer; 
 		mRotationVelocity = 0;
 		Log.d("Camera", String.format("Up is %f, %f, %f", up[0], up[1], up[2] ));
 	}
@@ -88,6 +93,7 @@ public class Camera {
 	public void stop() {
 		Log.d("Camera", "Stopping");
 		mRotationVelocity = 0;
+		messagePasser.SendMessage(MessageType.CAMERA_MOTION_CHANGED, false);
 	}
 	
 	public float[] getMVPMatrix() {
@@ -124,6 +130,7 @@ public class Camera {
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
         inverseProjectionNeedsRecalculating = true;
         lastMoveId++;
+        messagePasser.SendMessage(MessageType.CAMERA_MOVED, true);
 	}
 	
 	public long getLastMoveId() {
@@ -142,6 +149,7 @@ public class Camera {
 		setRotationVector(dX, dY);
 		mRotationVelocity = velocity;
 		Log.d("Camera", String.format("Flung! axis is (%f, %f, %f), velocity is %f",mRotationAxis[0], mRotationAxis[1], mRotationAxis[2], mRotationVelocity));
+		messagePasser.SendMessage(MessageType.CAMERA_MOTION_CHANGED, true);
 	}
 
 	private void setRotationVector(float dX, float dY) {

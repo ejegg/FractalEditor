@@ -7,7 +7,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.render.MainRenderer;
 import com.ejegg.fractaldisplay.spatial.Camera;
 import com.ejegg.fractaldisplay.touch.MotionEventHandler;
 import com.ejegg.fractaldisplay.touch.MotionEventSubscriber;
@@ -18,7 +17,7 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 	private FractalDisplay appContext;
 	private FractalStateManager stateManager;
 	private Camera camera;
-	private MainRenderer renderer;
+	private MessagePasser messagePasser;
 	
 	public FractalDisplayView(Context context, AttributeSet attrs) {
 		super(context, attrs);
@@ -28,14 +27,9 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 		appContext = ((FractalDisplay)context.getApplicationContext());
 		camera = appContext.getCamera();
 		stateManager = appContext.getStateManager();
+		messagePasser = appContext.getMessagePasser();
 	}
-
-	@Override
-	public void setRenderer(GLSurfaceView.Renderer renderer) {
-		super.setRenderer(renderer);
-		this.renderer = (MainRenderer)renderer;
-	}
-	
+		
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
 		//Log.d("FractalDisplayView", "onTouch");
@@ -109,8 +103,8 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 
 	@Override
 	public void down() {
-		renderer.setScreenTouched(true);
-		Log.d("FractalDisplayView", "down");
+		messagePasser.SendMessage(MessagePasser.MessageType.SCREEN_TOUCHED, true);
+		
 		if (manipulating()) {
 			stateManager.startManipulation();
 		}
@@ -118,7 +112,8 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 
 	@Override
 	public void up() {
-		renderer.setScreenTouched(false);
+		messagePasser.SendMessage(MessagePasser.MessageType.SCREEN_TOUCHED, false);
+		
 		if (manipulating()) {
 			stateManager.finishManipulation();
 		}

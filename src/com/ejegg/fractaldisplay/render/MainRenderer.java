@@ -3,6 +3,8 @@ package com.ejegg.fractaldisplay.render;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import com.ejegg.fractaldisplay.MessagePasser;
+import com.ejegg.fractaldisplay.MessagePasser.MessageType;
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
 
@@ -10,37 +12,55 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
-public class MainRenderer implements GLSurfaceView.Renderer{
+public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.MessageListener{
 
 	private FractalRenderer fractalRenderer;
 	private CubeRenderer cubeRenderer;
 	private TextureRenderer textureRenderer;
 	private Camera camera;
 	private FractalStateManager stateManager;
-	private boolean screenTouched = false;
+	private boolean accumulatePoints = false;
+	private boolean editMode = false;
+	private MessagePasser passer;
+	private long lastCameraPosition;
+	private long newCameraPosition;
+	private GLSurfaceView view;
 	
-	public MainRenderer(Camera camera, FractalStateManager stateManager) {
+	public MainRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer, GLSurfaceView view) {
 		this.camera = camera;
 		this.stateManager = stateManager;
+		this.passer = passer;
+		this.view = view;
+		
+		passer.Subscribe(this, MessageType.NEW_POINTS_AVAILABLE, MessageType.ACCUMULATION_MOTION_CHANGED);
 	}
-	
+
 	@Override
 	public void onDrawFrame(GL10 gl) {
-		
-		if (stateManager.isEditMode()) {
+		editMode = stateManager.isEditMode();
+		Log.d("MainRenderer", "Requested frame, edit mode is " + editMode);
+		if (editMode) {
 			clear();
 			cubeRenderer.draw();
-		} else if (camera.isMoving() || screenTouched) {
-			clear();
-			fractalRenderer.draw(false);
 		} else {
-			textureRenderer.preRender();
-			fractalRenderer.draw(true);
-			textureRenderer.draw();
+			newCameraPosition = camera.getLastMoveId();
+			if ((newCameraPosition == lastCameraPosition) && accumulatePoints) {
+				textureRenderer.preRender();
+				fractalRenderer.draw(true);
+				textureRenderer.draw();
+				if (fractalRenderer.getBufferIndex() > 0) {
+					view.requestRender();
+				}
+			} else {
+				clear();
+				fractalRenderer.draw(false);	
+			}
+			lastCameraPosition = newCameraPosition;
 		}
+			
 		if (camera.isMoving()) {
 			camera.spinStep();
-		}
+		} 
 	}
 	
 	private void clear() {
@@ -55,7 +75,7 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		if (textureRenderer != null) {
 			textureRenderer.freeResources();
 		}
-		textureRenderer = new TextureRenderer(camera, stateManager);
+		textureRenderer = new TextureRenderer(camera, stateManager, passer);
 		Log.d("MainRenderer", "Done onSurfaceChanged");
 	}
 
@@ -78,7 +98,15 @@ public class MainRenderer implements GLSurfaceView.Renderer{
 		Log.d("MainRenderer", "Done onSurfaceCreated");
 	}
 
-	public void setScreenTouched(boolean screenTouched) {
-		this.screenTouched = screenTouched;
+	@Override
+	public void ReceiveMessage(MessageType type, boolean value) {
+		switch(type){
+			case NEW_POINTS_AVAILABLE:
+				accumulatePoints = value;
+				break;
+			case ACCUMULATION_MOTION_CHANGED:
+				accumulatePoints = accumulatePoints || value;
+				break;
+		}
 	}
 }
