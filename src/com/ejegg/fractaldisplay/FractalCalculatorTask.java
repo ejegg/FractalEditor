@@ -1,5 +1,6 @@
 package com.ejegg.fractaldisplay;
 
+import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -18,110 +19,145 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     private ProgressListener progressListener;
     private ResultListener resultListener;
     private static final int DISCARD_COUNT = 10;
+    private static SoftReference<float[]> pointsRef;
+    private static SoftReference<ByteBuffer> bytesRef;
+    private float[] boundingBox = new float[6];
     
     public FractalCalculatorTask(ProgressListener progressListener, ResultListener resultListener) {
     	this.progressListener  = progressListener;
     	this.resultListener = resultListener;
     }
     
-	@Override
-	protected FloatBuffer doInBackground(Request... fractalRequest) {
-		Log.d("FractalCalculatorTask", "Starting calculation");
-		int numPoints = fractalRequest[0].getNumPoints();
-		int numTransforms = fractalRequest[0].getFractal().getNumTransforms();
-		float[][] transforms = fractalRequest[0].getFractal().getTransforms();
-		
-    	float[] currentPoint = new float[4];
-    	for(int i = 0; i < 3; i++) {
-    		currentPoint[i] = r.nextFloat() * 2.0f - 1.0f;
-    	}
-    	currentPoint[3] = 1.0f;
-		float[] fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
-        int progressStep = numPoints / 25;
+    @Override
+        protected FloatBuffer doInBackground(Request... fractalRequest) {
+                //Log.d("FractalCalculatorTask", "Starting calculation");
+                int numPoints = fractalRequest[0].getNumPoints();
+                int numTransforms = fractalRequest[0].getFractal().getNumTransforms();
+                float[][] transforms = fractalRequest[0].getFractal().getTransforms();
+                float[] transform;
+                float[] fractalPoints = null;
+                boundingBox[0] = boundingBox[1] = boundingBox[2] = 10; // minima
+                boundingBox[3] = boundingBox[4] = boundingBox[5] = -10; //maxima
+                if (pointsRef != null) {
+                        fractalPoints = pointsRef.get(); //assuming numPoints does not change!!
+                }
+                
+                if (fractalPoints == null) {
+                        Log.d("FractalCalculatorTask", "Allocating new points buffer");
+                        fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
+                        pointsRef = new SoftReference<float[]>(fractalPoints);
+                }
+        for(int i = 0; i < 3; i++) {
+                fractalPoints[i] = r.nextFloat() * 2.0f - 1.0f;
+        }
+        fractalPoints[3] = 1.0f;
+
+        int progressStep = numPoints / 100;
+                int lastPos = 0;
+                int curPos;
+                int j;
+                float f;
+        for (int i = 1; i< numPoints; i++) {
+                transform = transforms[r.nextInt(numTransforms)];
+                curPos = i * GlRenderer.COORDS_PER_VERTEX;
+                Matrix.multiplyMV(fractalPoints, curPos, transform, 0, fractalPoints, lastPos);
+                lastPos = curPos;
+                
+                if (i % progressStep == 0) {
+                        //Log.d("FractalCalculatorTask", "progress at " + (i * 100 / numPoints));
+                        publishProgress(i * 100 / numPoints);
+                        for(j = 0; j < 3; j++) {
+                                f = fractalPoints[curPos + j];
+                                if (f < boundingBox[j]) {
+                                        boundingBox[j] = f;
+                                }
+                                if (f > boundingBox[j + 3]) {
+                                        boundingBox[j + 3] = f;
+                                }
+                        }
+                        if (isCancelled()) {
+                                return null;
+                        }
+                }
+        }
         
-        boolean discard = true;
-        
-    	for (int i = 0; i< numPoints; i++) {
-    		float[] transform = transforms[r.nextInt(numTransforms)];
-    		int srpPos = i * GlRenderer.COORDS_PER_VERTEX;
-    		Matrix.multiplyMV(fractalPoints, srpPos, transform, 0, currentPoint, 0);
-    		System.arraycopy(fractalPoints, srpPos, currentPoint, 0, GlRenderer.COORDS_PER_VERTEX);
-    		
-    		if (discard && i == DISCARD_COUNT) {
-    			i = 0;
-    			discard = false;
-    		}
-    		if (i % progressStep == 0) {
-    			//Log.d("FractalCalculatorTask", "progress at " + (i * 100 / numPoints));
-    			publishProgress(i * 100 / numPoints);
-    			if (isCancelled()) {
-    				return null;
-    			}
-    		}
-    	}
-    	FloatBuffer pointBuffer = allocateBuffer(fractalPoints.length);
+        for (int i = 0; i< DISCARD_COUNT; i++) {
+                transform = transforms[r.nextInt(numTransforms)];
+                curPos = i * GlRenderer.COORDS_PER_VERTEX;
+                Matrix.multiplyMV(fractalPoints, curPos, transform, 0, fractalPoints, lastPos);
+                lastPos = curPos;
+        }
+        FloatBuffer pointBuffer = allocateBuffer(fractalPoints.length);
         // add the coordinates to the FloatBuffer
         pointBuffer.put(fractalPoints);
         // set the buffer to read the first coordinate
         pointBuffer.position(0);
-        Log.d("FractalCalculatorTask", "returning pointBuffer");
+        //Log.d("FractalCalculatorTask", "returning pointBuffer");
         return pointBuffer;
-	}
-		
-	private FloatBuffer allocateBuffer(int length) {
-    	ByteBuffer bb = ByteBuffer.allocateDirect(length * 4);
-        // use the device hardware's native byte order
-        bb.order(ByteOrder.nativeOrder());
+        }
+                
+        private FloatBuffer allocateBuffer(int length) {
+        ByteBuffer bb = null;
+        if (bytesRef != null) {
+                bb = bytesRef.get();
+        }
+        if (bb == null) {
+                Log.d("FractalCalculatorTask", "Allocating new byte buffer");
+                bb = ByteBuffer.allocateDirect(length * 4);
+            bb.order(ByteOrder.nativeOrder());
+            bytesRef = new SoftReference<ByteBuffer>(bb);
+        }
+
         // create a floating point buffer from the ByteBuffer
         return bb.asFloatBuffer();
     }
-	
-	public static class Request {
-		private FractalState fractal;
-		private int numPoints;
-		
-		public Request(FractalState fractal, int numPoints) {
-			this.fractal = fractal;
-			this.numPoints = numPoints;
-		}
-		
-		public FractalState getFractal() {
-			return fractal;
-		}
-		
-		public int getNumPoints() {
-			return numPoints;
-		}
-	}
-	
-	@Override
-	protected void onProgressUpdate(Integer... values) {
-		if (progressListener != null) {
-			progressListener.progressed(values[0]);
-		}
-	}
-	
-	protected void onPostExecute(FloatBuffer points){
-		Log.d("FractalCalculatorTask", "onPostExecute, publishing points");
-		if (progressListener != null) {
-			progressListener.finished();
-		}
-		if (resultListener != null) {
-			resultListener.finished(points);
-		}
-	}
-	
-	public void setProgressListener(ProgressListener listener) {
-		this.progressListener = listener;
-	}
-	
-	public interface ProgressListener {
-		void started();
-		void progressed(int progress);
-		void finished();
-	}
-	
-	public interface ResultListener {
-		void finished(FloatBuffer points);
-	}
+
+    public static class Request {
+            private FractalState fractal;
+            private int numPoints;
+            
+            public Request(FractalState fractal, int numPoints) {
+                    this.fractal = fractal;
+                    this.numPoints = numPoints;
+            }
+            
+            public FractalState getFractal() {
+                    return fractal;
+            }
+            
+            public int getNumPoints() {
+                    return numPoints;
+            }
+    }
+    
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+            if (progressListener != null) {
+                    progressListener.progressed(values[0]);
+            }
+    }
+    
+    protected void onPostExecute(FloatBuffer points){
+            Log.d("FractalCalculatorTask", "onPostExecute, publishing points");
+            if (progressListener != null) {
+                    progressListener.finished();
+            }
+            if (resultListener != null) {
+                    resultListener.finished(points);
+            }
+    }
+    
+    public void setProgressListener(ProgressListener listener) {
+            this.progressListener = listener;
+    }
+    
+    public interface ProgressListener {
+            void started();
+            void progressed(int progress);
+            void finished();
+    }
+    
+    public interface ResultListener {
+            void finished(FloatBuffer points);
+    }
 }
