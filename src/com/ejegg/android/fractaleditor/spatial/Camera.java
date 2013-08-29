@@ -1,7 +1,7 @@
-package com.ejegg.fractaldisplay.spatial;
+package com.ejegg.android.fractaleditor.spatial;
 
-import com.ejegg.fractaldisplay.MessagePasser;
-import com.ejegg.fractaldisplay.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.MessagePasser;
+import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 
 import android.opengl.Matrix;
 import android.util.Log;

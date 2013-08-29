@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
@@ -6,8 +6,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.Random;
 
-import com.ejegg.fractaldisplay.persist.FractalState;
-import com.ejegg.fractaldisplay.render.GlRenderer;
+import com.ejegg.android.fractaleditor.persist.FractalState;
+import com.ejegg.android.fractaleditor.render.GlRenderer;
 
 import android.opengl.Matrix;
 import android.os.AsyncTask;

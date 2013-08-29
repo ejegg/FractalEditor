@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
 import android.content.Context;
 import android.opengl.GLSurfaceView;
@@ -6,10 +6,10 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.spatial.Camera;
-import com.ejegg.fractaldisplay.touch.MotionEventHandler;
-import com.ejegg.fractaldisplay.touch.MotionEventSubscriber;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.spatial.Camera;
+import com.ejegg.android.fractaleditor.touch.MotionEventHandler;
+import com.ejegg.android.fractaleditor.touch.MotionEventSubscriber;
 
 public class FractalEditView extends GLSurfaceView implements MotionEventSubscriber {
 

@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay.persist;
+package com.ejegg.android.fractaleditor.persist;
 
 import java.util.HashMap;
 
@@ -13,12 +13,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 import android.provider.BaseColumns;
-import com.ejegg.fractaldisplay.R;
+import com.ejegg.android.fractaleditor.R;
 
 public class FractalStateProvider extends ContentProvider {
 //lots of this is adapted from the npr android app, apache licensed (can be added to GPLv3 projects)
 	private FractalDatabaseHelper helper;
-	public static final Uri CONTENT_URI = Uri.parse("content://com.ejegg.fractaldisplay.persist.FractalState");
+	public static final Uri CONTENT_URI = Uri.parse("content://com.ejegg.android.fractaleditor.persist.FractalState");
 	private static final String DATABASE_NAME = "fractaleditor";
 	private static final String TABLE_NAME = "fractalstates";
     private static final int DATABASE_VERSION = 1;

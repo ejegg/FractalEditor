@@ -1,6 +1,6 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
-import com.ejegg.fractaldisplay.R;
+import com.ejegg.android.fractaleditor.R;
 
 import android.content.Context;
 import android.util.AttributeSet;

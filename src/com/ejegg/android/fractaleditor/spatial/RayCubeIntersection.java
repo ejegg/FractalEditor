@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay.spatial;
+package com.ejegg.android.fractaleditor.spatial;
 
 import android.opengl.Matrix;
 import android.util.Log;

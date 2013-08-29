@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

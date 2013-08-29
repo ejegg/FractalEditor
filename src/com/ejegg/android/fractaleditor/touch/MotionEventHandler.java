@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay.touch;
+package com.ejegg.android.fractaleditor.touch;
 
 import java.util.ArrayList;
 import java.util.List;

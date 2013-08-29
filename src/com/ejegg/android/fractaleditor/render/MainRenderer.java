@@ -1,13 +1,13 @@
-package com.ejegg.fractaldisplay.render;
+package com.ejegg.android.fractaleditor.render;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import com.ejegg.fractaldisplay.MessagePasser;
-import com.ejegg.fractaldisplay.MessagePasser.MessageType;
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.spatial.Camera;
-import com.ejegg.fractaldisplay.spatial.Vec;
+import com.ejegg.android.fractaleditor.MessagePasser;
+import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.spatial.Camera;
+import com.ejegg.android.fractaleditor.spatial.Vec;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;

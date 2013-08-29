@@ -1,13 +1,13 @@
-package com.ejegg.fractaldisplay.persist;
+package com.ejegg.android.fractaleditor.persist;
 
 import java.nio.FloatBuffer;
 import java.util.Stack;
 
-import com.ejegg.fractaldisplay.FractalCalculatorTask;
-import com.ejegg.fractaldisplay.MessagePasser;
-import com.ejegg.fractaldisplay.FractalCalculatorTask.ResultListener;
-import com.ejegg.fractaldisplay.MessagePasser.MessageType;
-import com.ejegg.fractaldisplay.spatial.RayCubeIntersection;
+import com.ejegg.android.fractaleditor.FractalCalculatorTask;
+import com.ejegg.android.fractaleditor.MessagePasser;
+import com.ejegg.android.fractaleditor.FractalCalculatorTask.ResultListener;
+import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;

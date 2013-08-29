@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android" 
-    xmlns:app="http://schemas.android.com/apk/res/com.ejegg.fractaldisplay">
+    xmlns:app="http://schemas.android.com/apk/res/com.ejegg.android.fractaleditor">
     <item 
         app:state_uniform_scale="false"
         android:drawable="@drawable/ic_menu_scale_linear" />

@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay.spatial;
+package com.ejegg.android.fractaleditor.spatial;
 
 public class Vec {
 

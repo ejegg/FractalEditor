@@ -1,7 +1,7 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.spatial.Camera;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.spatial.Camera;
 
 import android.app.Application;
 

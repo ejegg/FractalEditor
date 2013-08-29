@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay.touch;
+package com.ejegg.android.fractaleditor.touch;
 
 public interface MotionEventSubscriber {
 	void tap(float screenX, float screenY);

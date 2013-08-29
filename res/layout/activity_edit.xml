@@ -47,14 +47,14 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/ic_menu_remove" />
             
-            <com.ejegg.fractaldisplay.ScaleModeButton
+            <com.ejegg.android.fractaleditor.ScaleModeButton
                 android:id="@+id/scaleModeButton"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/scale" />
                         
-            <com.ejegg.fractaldisplay.EditButton
+            <com.ejegg.android.fractaleditor.EditButton
                 android:id="@+id/modeButton"
                 style="?android:attr/buttonStyleSmall"
                 android:layout_width="wrap_content"
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-<com.ejegg.fractaldisplay.FractalEditView
+<com.ejegg.android.fractaleditor.FractalEditView
          android:id="@+id/fractalCanvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

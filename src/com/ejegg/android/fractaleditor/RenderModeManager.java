@@ -1,11 +1,11 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
-import com.ejegg.fractaldisplay.MessagePasser.MessageType;
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.spatial.Camera;
+import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.spatial.Camera;
 
 public class RenderModeManager implements MessagePasser.MessageListener{
 

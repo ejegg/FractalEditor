@@ -1,7 +1,7 @@
-package com.ejegg.fractaldisplay.persist;
+package com.ejegg.android.fractaleditor.persist;
 
-import com.ejegg.fractaldisplay.spatial.RayCubeIntersection;
-import com.ejegg.fractaldisplay.spatial.Vec;
+import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
+import com.ejegg.android.fractaleditor.spatial.Vec;
 
 import android.opengl.Matrix;
 

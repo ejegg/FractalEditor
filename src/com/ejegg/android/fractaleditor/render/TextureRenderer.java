@@ -1,4 +1,4 @@
-package com.ejegg.fractaldisplay.render;
+package com.ejegg.android.fractaleditor.render;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -9,10 +9,10 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.util.Log;
 
-import com.ejegg.fractaldisplay.MessagePasser;
-import com.ejegg.fractaldisplay.MessagePasser.MessageType;
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.spatial.Camera;
+import com.ejegg.android.fractaleditor.MessagePasser;
+import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.spatial.Camera;
 
 public class TextureRenderer extends GlRenderer implements MessagePasser.MessageListener {
 

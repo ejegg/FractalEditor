@@ -1,7 +1,7 @@
-package com.ejegg.fractaldisplay.render;
+package com.ejegg.android.fractaleditor.render;
 
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.spatial.Camera;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.spatial.Camera;
 
 import android.opengl.GLES20;
 import android.util.Log;

@@ -1,13 +1,13 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
 import java.util.Arrays;
 
-import com.ejegg.fractaldisplay.R;
-import com.ejegg.fractaldisplay.LoadActivity;
-import com.ejegg.fractaldisplay.MessagePasser.MessageType;
-import com.ejegg.fractaldisplay.persist.FractalStateManager;
-import com.ejegg.fractaldisplay.render.MainRenderer;
-import com.ejegg.fractaldisplay.spatial.Camera;
+import com.ejegg.android.fractaleditor.LoadActivity;
+import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.persist.FractalStateManager;
+import com.ejegg.android.fractaleditor.render.MainRenderer;
+import com.ejegg.android.fractaleditor.spatial.Camera;
+import com.ejegg.android.fractaleditor.R;
 
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
@@ -96,7 +96,7 @@ public class FractalEditActivity extends Activity implements
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.display, menu);
+		getMenuInflater().inflate(R.menu.edit, menu);
 		return true;
 	}
 

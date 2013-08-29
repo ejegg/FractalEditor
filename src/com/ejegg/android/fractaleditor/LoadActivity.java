@@ -1,7 +1,7 @@
-package com.ejegg.fractaldisplay;
+package com.ejegg.android.fractaleditor;
 
-import com.ejegg.fractaldisplay.R;
-import com.ejegg.fractaldisplay.persist.FractalStateProvider;
+import com.ejegg.android.fractaleditor.persist.FractalStateProvider;
+import com.ejegg.android.fractaleditor.R;
 
 import android.net.Uri;
 import android.os.Bundle;
