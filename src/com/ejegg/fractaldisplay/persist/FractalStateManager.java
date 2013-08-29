@@ -4,8 +4,8 @@ import java.nio.FloatBuffer;
 import java.util.Stack;
 
 import com.ejegg.fractaldisplay.FractalCalculatorTask;
-import com.ejegg.fractaldisplay.FractalCalculatorTask.ResultListener;
 import com.ejegg.fractaldisplay.MessagePasser;
+import com.ejegg.fractaldisplay.FractalCalculatorTask.ResultListener;
 import com.ejegg.fractaldisplay.MessagePasser.MessageType;
 import com.ejegg.fractaldisplay.spatial.RayCubeIntersection;
 
@@ -23,9 +23,12 @@ public class FractalStateManager implements ResultListener {
     private boolean recalculating = false;
     private boolean continuousCalculation = false;
     private int calculationRepeatCount = 0;
-    private static final int MAX_CALCULATION_REPEAT = 5;
+    private static final int MAX_CALCULATION_REPEAT = 25;
 	private Stack<FractalState> undoStack = new Stack<FractalState>();
 	private boolean uniformScaleMode = true;
+	
+	private static final int BUFFER_MULTIPLE = 3;
+	private int bufferIndex = 0;
 	
 	private MessagePasser messagePasser;
 	private FractalCalculatorTask.ProgressListener calculationListener;
@@ -34,6 +37,7 @@ public class FractalStateManager implements ResultListener {
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " + 
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
+	private float[] boundingBox;
 
 	public FractalStateManager(MessagePasser messagePasser) {
 		this.messagePasser = messagePasser;
@@ -69,7 +73,11 @@ public class FractalStateManager implements ResultListener {
 	
 	public void toggleEditMode() {
 		editMode = !editMode;
+		State.clearSelection();
 		sendMessage(MessagePasser.MessageType.EDIT_MODE_CHANGED, editMode);
+		if (editMode) {
+			cancelCalculation();
+		}
 	}
 	
 	public boolean isUniformScaleMode() {
@@ -112,7 +120,7 @@ public class FractalStateManager implements ResultListener {
 			contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
 		}
 		catch (Exception e) {
-			Log.d("fview", "Error saving: " + e.getMessage() + e.getStackTrace());
+			//Log.d("fview", "Error saving: " + e.getMessage() + e.getStackTrace());
 			return false;
 		}
 		return true;
@@ -130,13 +138,14 @@ public class FractalStateManager implements ResultListener {
 		if (recalculating) return;
 		
 		recalculating = true;		
-		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(State, numPoints);
+		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(State, numPoints * BUFFER_MULTIPLE);
 		calculator = new FractalCalculatorTask(fractalPoints == null ? calculationListener : null, this);
 		calculator.execute(request);
 	}
 
 	@Override
-	public void finished(FloatBuffer points) {
+	public void finished(FloatBuffer points, float[] boundingBox) {
+		this.boundingBox = boundingBox;
 		boolean accumulatedPoints = (fractalPoints != null);
 		this.fractalPoints = points;
 		recalculating = false;
@@ -149,6 +158,7 @@ public class FractalStateManager implements ResultListener {
 				recalculatePoints();
 			}
 		}
+		bufferIndex = 0;
 		sendMessage(MessagePasser.MessageType.NEW_POINTS_AVAILABLE, accumulatedPoints);
 	}
 	
@@ -161,8 +171,8 @@ public class FractalStateManager implements ResultListener {
 		float testA;
 		int mindex = FractalState.NO_CUBE_SELECTED;
 		
-		Log.d("View", String.format("Near point is (%f,  %f, %f)", nearPoint[0], nearPoint[1], nearPoint[2]));
-		Log.d("View", String.format("Far point is (%f,  %f, %f)", farPoint[0], farPoint[1], farPoint[2]));
+		//Log.d("View", String.format("Near point is (%f,  %f, %f)", nearPoint[0], nearPoint[1], nearPoint[2]));
+		//Log.d("View", String.format("Far point is (%f,  %f, %f)", farPoint[0], farPoint[1], farPoint[2]));
 				
 		int transformCount = State.getNumTransforms();
 		float[][] transforms = State.getTransforms();
@@ -170,7 +180,7 @@ public class FractalStateManager implements ResultListener {
 		for (int i = 0; i< transformCount; i++) {
 			testA = new RayCubeIntersection(nearPoint, farPoint, transforms[i]).getMinA();
 			
-			Log.d("View", "testA is " + testA);
+			//Log.d("View", "testA is " + testA);
 			if (testA < minA) {
 				minA = testA;
 				mindex = i;
@@ -183,7 +193,7 @@ public class FractalStateManager implements ResultListener {
 	}
 	
 	public void startManipulation() {
-		Log.d("FractalStateManager", "starting manipulation");
+		//Log.d("FractalStateManager", "starting manipulation");
 		lastState = State.clone();
 	}
 
@@ -236,18 +246,25 @@ public class FractalStateManager implements ResultListener {
 	}
 
 	public void setContinuousCalculation(boolean continuousCalculation) {
+		//Log.d("statemgr", "Got call to setContinuousCalculation with value " + continuousCalculation + ", old value was " + this.continuousCalculation);
+		if (editMode) {return;}
 		if (continuousCalculation != this.continuousCalculation) {
 			calculationRepeatCount = 0;
-			sendMessage(MessageType.ACCUMULATION_MOTION_CHANGED, continuousCalculation);
+			sendMessage(MessageType.ACCUMULATION_MODE_CHANGED, continuousCalculation);
+			if (!continuousCalculation && fractalPoints != null) {
+				cancelCalculation();
+			}
 		}
 		this.continuousCalculation = continuousCalculation;
 		if (continuousCalculation && !isEditMode()) {
+			//Log.d("statemgr", "Going to recalculate points");
 			recalculatePoints();
 		}
 	}
 	
 	private void stateChanged() {
 		sendMessage(MessagePasser.MessageType.STATE_CHANGED, true);
+		cancelCalculation();
 		fractalPoints = null;
 	}
 	
@@ -255,5 +272,27 @@ public class FractalStateManager implements ResultListener {
 		if (messagePasser != null) {
 			messagePasser.SendMessage(type, value);
 		}
+	}
+
+	public int getBufferIndex() {
+		return bufferIndex;
+	}
+
+	public void incrementBufferIndex() {
+		bufferIndex = (bufferIndex + 1) % BUFFER_MULTIPLE;
+		if (bufferIndex > 0) {
+			sendMessage(MessagePasser.MessageType.NEW_POINTS_AVAILABLE, true);
+		}
+	}
+	
+	private void cancelCalculation() {
+		if (calculator != null && !calculator.isCancelled()) {
+			calculator.cancel(true);
+			recalculating = false;
+		}
+	}
+
+	public float[] getBoundingBox() {
+		return boundingBox;
 	}
 }

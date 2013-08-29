@@ -10,12 +10,11 @@ import com.ejegg.fractaldisplay.spatial.Camera;
 public class RenderModeManager implements MessagePasser.MessageListener{
 
 	private FractalStateManager stateManager;
-	private FractalDisplayView view;
+	private FractalEditView view;
 	private boolean cameraMoving;
 	private boolean screenTouched = false;
-    private boolean continuousCalculation = false;
         
-	public RenderModeManager(MessagePasser messagePasser, FractalStateManager stateManager, Camera camera, FractalDisplayView view) {
+	public RenderModeManager(MessagePasser messagePasser, FractalStateManager stateManager, Camera camera, FractalEditView view) {
 		messagePasser.Subscribe(this, MessageType.CAMERA_MOTION_CHANGED, MessageType.SCREEN_TOUCHED, 
 				MessageType.CAMERA_MOVED,
 				MessageType.STATE_CHANGED,
@@ -25,15 +24,12 @@ public class RenderModeManager implements MessagePasser.MessageListener{
 		cameraMoving = camera.isMoving();
 		this.view = view;
 		this.stateManager = stateManager;
+		Log.d("RenderModeManager", "constructed");
 		checkAccumulate();
 	}
 
-	private void checkAccumulate() {
-		boolean newValue = !(screenTouched || cameraMoving);
-		if (newValue != continuousCalculation) {
-			stateManager.setContinuousCalculation(newValue);
-		}
-		continuousCalculation = newValue;
+	public void checkAccumulate() {
+		stateManager.setContinuousCalculation(!(screenTouched || cameraMoving));
 	}
 
 	@Override
@@ -43,19 +39,27 @@ public class RenderModeManager implements MessagePasser.MessageListener{
 			case CAMERA_MOTION_CHANGED:
 				cameraMoving = value;
 				view.setRenderMode(cameraMoving ? GLSurfaceView.RENDERMODE_CONTINUOUSLY : GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+				checkAccumulate();
+				if (!value) {
+					view.requestRender();
+				}
 				break;
 			case SCREEN_TOUCHED:
 				screenTouched = value;
+				checkAccumulate();
 				break;
 			case EDIT_MODE_CHANGED:
-				stateManager.setContinuousCalculation(!value);
+				if (value) {
+					stateManager.setContinuousCalculation(false);
+				} else {
+					checkAccumulate();
+				}
 			case CAMERA_MOVED:
 			case STATE_CHANGED:
 			case STATE_CHANGING:
 			case NEW_POINTS_AVAILABLE:
-				view.requestRender();
+				view.requestRender();		
 		}
-		checkAccumulate();
 	}
 	
 }

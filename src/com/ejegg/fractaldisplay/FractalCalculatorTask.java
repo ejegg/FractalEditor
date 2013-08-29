@@ -143,7 +143,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
                     progressListener.finished();
             }
             if (resultListener != null) {
-                    resultListener.finished(points);
+                    resultListener.finished(points, boundingBox);
             }
     }
     
@@ -158,6 +158,6 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     }
     
     public interface ResultListener {
-            void finished(FloatBuffer points);
+            void finished(FloatBuffer points, float[] boundingBox);
     }
 }

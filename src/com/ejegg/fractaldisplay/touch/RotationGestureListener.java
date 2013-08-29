@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.view.MotionEvent;
-
+/*
+ * Mostly from pretobomba on Stack Overflow (http://stackoverflow.com/questions/10682019/android-two-finger-rotation)
+ */
 public class RotationGestureListener {
     private static final int INVALID_POINTER_ID = -1;
     private float fX, fY, sX, sY, focalX, focalY;
@@ -79,7 +81,6 @@ public class RotationGestureListener {
     }
     
     private float angleBtwLines (float fx1, float fy1, float fx2, float fy2, float sx1, float sy1, float sx2, float sy2){
-    	//Log.d("fview", "dx1: " + (fx1 - fx2) + ", dy1: " + (fy1 - fy2));
         float angle1 = (float) Math.atan2(fy1 - fy2, fx1 - fx2);
         float angle2 = (float) Math.atan2(sy1 - sy2, sx1 - sx2);
         return (float) Math.toDegrees(angle2-angle1) % 360.0f;

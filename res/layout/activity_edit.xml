@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
 
-<com.ejegg.fractaldisplay.FractalDisplayView
+<com.ejegg.fractaldisplay.FractalEditView
          android:id="@+id/fractalCanvas"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

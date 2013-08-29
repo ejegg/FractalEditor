@@ -92,20 +92,20 @@ public class CubeRenderer extends GlRenderer {
                     "  } " +                    
                     "}";
 
-        Log.d("CubeRenderer", "started initialize");
+        //Log.d("CubeRenderer", "started initialize");
         setShaders();
-        Log.d("CubeRenderer", "Program handle is " + programHandle);
+        //Log.d("CubeRenderer", "Program handle is " + programHandle);
         mvpMatrixHandle = GLES20.glGetUniformLocation(programHandle, "uMVPMatrix");
-        Log.d("CubeRenderer", "uMVPMatrix handle is " + mvpMatrixHandle);
+        //Log.d("CubeRenderer", "uMVPMatrix handle is " + mvpMatrixHandle);
         transformMatrixHandle = GLES20.glGetUniformLocation(programHandle, "transformMatrix");
-        Log.d("CubeRenderer", "transformMatrix handle is " + transformMatrixHandle);
+        //Log.d("CubeRenderer", "transformMatrix handle is " + transformMatrixHandle);
         colorHandle = GLES20.glGetAttribLocation(programHandle, "vColor");
-        Log.d("CubeRenderer", "vColor handle is " + colorHandle);
+        //Log.d("CubeRenderer", "vColor handle is " + colorHandle);
         positionHandle = GLES20.glGetAttribLocation(programHandle, "vPosition");
-        Log.d("CubeRenderer", "vPosition handle is " + positionHandle);
+        //Log.d("CubeRenderer", "vPosition handle is " + positionHandle);
         selectedHandle = GLES20.glGetUniformLocation(programHandle, "selected");
-        Log.d("CubeRenderer", "selected handle is " + selectedHandle);
-        Log.d("CubeRenderer", "finished initialize");
+        //Log.d("CubeRenderer", "selected handle is " + selectedHandle);
+        //Log.d("CubeRenderer", "finished initialize");
     }
     
     private void setPoints() {

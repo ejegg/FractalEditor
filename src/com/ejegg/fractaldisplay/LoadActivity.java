@@ -1,5 +1,6 @@
 package com.ejegg.fractaldisplay;
 
+import com.ejegg.fractaldisplay.R;
 import com.ejegg.fractaldisplay.persist.FractalStateProvider;
 
 import android.net.Uri;
@@ -63,8 +64,8 @@ public class LoadActivity extends FragmentActivity implements LoaderManager.Load
 
 	@Override
 	public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-		Intent result = new Intent("com.ejegg.fractalstate.LoadActivity", Uri.parse(FractalStateProvider.CONTENT_URI.toString() + "/" + id));
-		Log.d("load", "clicked item, sending result: " + FractalStateProvider.CONTENT_URI.toString() + "/" + id);
+		Intent result = new Intent("com.ejegg.android.fractaleditor.LoadActivity", Uri.parse(FractalStateProvider.CONTENT_URI.toString() + "/" + id));
+		//Log.d("load", "clicked item, sending result: " + FractalStateProvider.CONTENT_URI.toString() + "/" + id);
 		setResult(RESULT_OK, result);
 		finish();
 	}

@@ -30,12 +30,12 @@ public class Camera {
 	public Camera(MessagePasser passer) {
 		this.messagePasser= passer; 
 		mRotationVelocity = 0;
-		Log.d("Camera", String.format("Up is %f, %f, %f", up[0], up[1], up[2] ));
+		//Log.d("Camera", String.format("Up is %f, %f, %f", up[0], up[1], up[2] ));
 	}
 	
 	public void scale(float scaleFactor) {
 		zoom *= scaleFactor;
-		Log.d("Camera", "zoom is " + zoom);
+		//Log.d("Camera", "zoom is " + zoom);
 		setProjection();
 		setViewMatrix();
 	}
@@ -86,12 +86,12 @@ public class Camera {
 		float[] oldUp = new float[4];
 		System.arraycopy(up, 0, oldUp, 0, 4);
 		Matrix.multiplyMV(up, 0, newRotate, 0, oldUp, 0);
-		Log.d("Camera", String.format("Up is %f, %f, %f", up[0], up[1], up[2] ));
+		//Log.d("Camera", String.format("Up is %f, %f, %f", up[0], up[1], up[2] ));
 		setViewMatrix();
 	}
 		
 	public void stop() {
-		Log.d("Camera", "Stopping");
+		//Log.d("Camera", "Stopping");
 		mRotationVelocity = 0;
 		messagePasser.SendMessage(MessageType.CAMERA_MOTION_CHANGED, false);
 	}
@@ -108,12 +108,16 @@ public class Camera {
 		return height;
 	}
 	
-	public void setScreenDimensions(int width, int height){
+	public boolean setScreenDimensions(int width, int height){
+		if (this.width == width && this.height == height) {
+			return false;
+		}
 		this.width = width;
 		this.height = height;
 		this.ratio = (float)width / (float)height;
 		setProjection();
 		setViewMatrix();
+		return true;
 	}
 	
 	private void setProjection() {
@@ -148,7 +152,7 @@ public class Camera {
 	public void spin(float dX, float dY, float velocity) {
 		setRotationVector(dX, dY);
 		mRotationVelocity = velocity;
-		Log.d("Camera", String.format("Flung! axis is (%f, %f, %f), velocity is %f",mRotationAxis[0], mRotationAxis[1], mRotationAxis[2], mRotationVelocity));
+		//Log.d("Camera", String.format("Flung! axis is (%f, %f, %f), velocity is %f",mRotationAxis[0], mRotationAxis[1], mRotationAxis[2], mRotationVelocity));
 		messagePasser.SendMessage(MessageType.CAMERA_MOTION_CHANGED, true);
 	}
 
@@ -198,7 +202,10 @@ public class Camera {
 	public void turn(float dX, float dY) {
 		setRotationVector(dX, dY);
 		float deg = (float)Math.sqrt(dX * dX + dY * dY) * TURN_SCALE;
-		Log.d("Camera", "turning " + deg);
+		//Log.d("Camera", "turning " + deg);
 		rotateAroundOrigin(deg);
+	}
+	public float[] getEyePosition() {
+		return eyePosition;
 	}
 }

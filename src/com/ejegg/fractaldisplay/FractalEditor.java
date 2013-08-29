@@ -2,9 +2,10 @@ package com.ejegg.fractaldisplay;
 
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
+
 import android.app.Application;
 
-public class FractalDisplay extends Application {
+public class FractalEditor extends Application {
 	
     private Camera camera;
     private MessagePasser messagePasser = new MessagePasser();

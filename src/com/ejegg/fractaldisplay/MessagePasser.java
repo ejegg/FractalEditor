@@ -21,7 +21,7 @@ public class MessagePasser {
 		RENDER_MODE_CHANGED,
 		SCREEN_TOUCHED,
 		CAMERA_MOTION_CHANGED,
-		ACCUMULATION_MOTION_CHANGED,
+		ACCUMULATION_MODE_CHANGED,
 		CAMERA_MOVED,
 	}
 	
@@ -30,52 +30,34 @@ public class MessagePasser {
 	}
 	
 	public synchronized void SendMessage(MessageType type, boolean value) {
-		Log.d("MessagePasser", "Got message of type " + type + ", value " + value);
+		//Log.d("MessagePasser", "Got message of type " + type + ", value " + value);
 		List<WeakReference<MessageListener>> list = listeners.get(type);
 		if (list == null) return;
 		int size = list.size();
 		if (list == null || size == 0) {
 			return;
 		}
-		//List<WeakReference<MessageListener>> toRemove = new ArrayList<WeakReference<MessageListener>>();
-		Log.d("MessagePasser", "Sending message to " + list.size() + " listeners");
-		
-		//Stack<Integer> toRemove = new Stack<Integer>();
 		
 		for (int i = size - 1; i >= 0; i-- ) {
 			MessageListener listener = list.get(i).get();
 			if (listener == null) {
 				list.remove(i);
-				Log.d("MessagePasser", "Removing garbage collected listener for " + type + " at index " + i);
+				//Log.d("MessagePasser", "Removing garbage collected listener for " + type + " at index " + i);
 			} else {
 				listener.ReceiveMessage(type, value);
 			}
 		}
-		
-		/*for (WeakReference<MessageListener> maybeListener : list) {
-			MessageListener listener = maybeListener.get();
-			if (listener == null) {
-				toRemove.add(maybeListener);
-			} else {
-				listener.ReceiveMessage(type, value);
-			}
-		}
-		
-		for (WeakReference<MessageListener> deadListener : toRemove) {
-			list.remove(deadListener);
-			Log.d("MessagePasser", "Removing garbage collected listener for " + type);
-		}*/
 	}
 	
 	public synchronized void Subscribe(MessageListener listener, MessageType... messageTypes) {
-		Log.d("MessagePasser", "Adding listener of type " +  listener.getClass().getCanonicalName());
+		//Log.d("MessagePasser", "Adding listener of type " +  listener.getClass().getCanonicalName());
 		for ( MessageType type : messageTypes) {
 			List<WeakReference<MessageListener>> list = listeners.get(type);
 			if (list == null) {
 				list = new ArrayList<WeakReference<MessageListener>>();;
 				listeners.put(type, list);
 			}
-			Log.d("MessagePasser", "For message type " + type + ", listener is at index " + list.size());			
+			//Log.d("MessagePasser", "For message type " + type + ", listener is at index " + list.size());			
 			list.add(new WeakReference<MessageListener>(listener) );
 		}
 	}

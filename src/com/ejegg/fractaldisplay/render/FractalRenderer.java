@@ -11,12 +11,11 @@ public class FractalRenderer extends GlRenderer {
 	private int mvpMatrixHandle;
 	private int colorHandle;
 	private int fadeHandle;
+	private int minDistHandle;
+	private int distFacHandle;
 	private int positionHandle;
-	private int startIndex = 0;
 	private int maxPoints = 0;
-	private int bufferIndex = 0;
 	private float color[] = { 0.35f, 1.0f, 0.3f, 1.0f };
-	private static final int BUFFER_MULTIPLE = 3;
     
     public FractalRenderer(Camera camera, FractalStateManager stateManager) {
     	super(camera, stateManager);
@@ -26,18 +25,21 @@ public class FractalRenderer extends GlRenderer {
     	    	    "varying float dist; " +
     	    	    "void main() {" +
     	    	    "  gl_Position = uMVPMatrix * vPosition;" +
-    	    	    "  dist = gl_Position.z - 2.0;" +
+    	    	    "  dist = gl_Position.z;" +
     	    	    "}";
 
     	fragmentShaderCode =
     	    	    "precision mediump float;" +
     	    	    "uniform vec4 vColor;" +
     	    	    "uniform int fade;" +
+    	    	    "uniform float minDist;" +
+    	    	    "uniform float distFac;" +    	    	    
     	    	    "varying float dist; " +
     	    	    "void main() {" +
     	    	    "  if (fade > 0) {" +
-    	    	    "	 gl_FragColor = vColor / (1.0 + (dist / 3.0 ));" +
-    	    	    "    gl_FragColor.w = 1.0 - (dist / 2.0);" +
+    	    	    "    float k = (dist - distFac) / (minDist - distFac); " +
+    	    	    "	 gl_FragColor = vColor * k;" +
+    	    	    "    gl_FragColor.w *= k;" +
     	    	    "  } else {" +
     	    	    "    gl_FragColor = vColor; " +
     	    	    "  }" +
@@ -45,26 +47,24 @@ public class FractalRenderer extends GlRenderer {
     	    	    "}";
 
     	setShaders();
-    	Log.d("FractalRenderer", "Called setShaders, programHandle is " + programHandle);
+    	//Log.d("FractalRenderer", "Called setShaders, programHandle is " + programHandle);
 		mvpMatrixHandle = GLES20.glGetUniformLocation(programHandle, "uMVPMatrix");
     	colorHandle = GLES20.glGetUniformLocation(programHandle, "vColor");
     	positionHandle = GLES20.glGetAttribLocation(programHandle, "vPosition");
-    	fadeHandle = GLES20.glGetUniformLocation(programHandle, "fade");    	
+    	fadeHandle = GLES20.glGetUniformLocation(programHandle, "fade");
+    	minDistHandle = GLES20.glGetUniformLocation(programHandle, "minDist");
+    	distFacHandle = GLES20.glGetUniformLocation(programHandle, "distFac");
     	maxPoints = GLES20.GL_MAX_VERTEX_ATTRIBS - 25;
-    	stateManager.setNumPoints(maxPoints * BUFFER_MULTIPLE);
+    	stateManager.setNumPoints(maxPoints);
     }
     
-    public int getBufferIndex() {
-    	return bufferIndex;
-    }
-    
-    public void draw(boolean accumulatePoints) {
+    public void draw(boolean accumulatePoints, float minDist, float maxDist) {
     	if (!stateManager.hasPoints()) {
     		stateManager.recalculatePoints();
     		return;
     	}
-    	int numPoints = stateManager.getNumPoints();
-    	int drawPoints = Math.min(maxPoints, numPoints);
+    	int bufferIndex = stateManager.getBufferIndex();
+    	Log.d("FractalRenderer", "bufferIndex is " + bufferIndex);
     	float[] mvpMatrix = camera.getMVPMatrix();
     	GLES20.glUseProgram(programHandle);
 
@@ -79,15 +79,11 @@ public class FractalRenderer extends GlRenderer {
     	
     	GLES20.glUniform1i(fadeHandle, accumulatePoints ? 1 : 0);
     	
-    	GLES20.glDrawArrays(GLES20.GL_POINTS, startIndex, drawPoints);
+    	GLES20.glUniform1f(minDistHandle, minDist);
+    	GLES20.glUniform1f(distFacHandle, 2 * (maxDist - minDist));
+    	
+    	GLES20.glDrawArrays(GLES20.GL_POINTS, bufferIndex * maxPoints, maxPoints);
     	
     	GLES20.glDisableVertexAttribArray(positionHandle);
-    	
-    	if (accumulatePoints) {
-    		bufferIndex = (bufferIndex + 1) % BUFFER_MULTIPLE;
-    		startIndex = maxPoints * bufferIndex; 
-    	} else {
-    		bufferIndex = 0;
-    	}
     }
 }

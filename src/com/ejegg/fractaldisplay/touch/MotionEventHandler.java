@@ -33,12 +33,10 @@ public class MotionEventHandler implements RotationGestureSubscriber{
 	}
 	
 	public boolean onTouchEvent(MotionEvent e) {
-		//Log.d("fview", "onTouch");
 		mGestureDetector.onTouchEvent(e);
 		mScaleDetector.onTouchEvent(e);
 		mRotationListener.onTouchEvent(e);
 		
-		//if (!result) return true;
 		float x = e.getX();
 		float y = e.getY();
 		
@@ -69,12 +67,10 @@ public class MotionEventHandler implements RotationGestureSubscriber{
 	class GestureListener extends GestureDetector.SimpleOnGestureListener {
 	   @Override
 	   public boolean onDown(MotionEvent e) {
-		   //Log.d("fview", "onDown");
 	       return true;
 	   }
 	   @Override
 	   public void onLongPress(MotionEvent e) {
-		  //Log.d("fview", "longPress!!");
 		  dragging = true;
 		  longPress(e.getX(), e.getY());
 	   }

@@ -32,6 +32,7 @@ public class TextureRenderer extends GlRenderer implements MessagePasser.Message
     public TextureRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer) {
     	super(camera, stateManager);
     	
+    	lastCameraMoveId = camera.getLastMoveId();
     	passer.Subscribe(this, MessagePasser.MessageType.STATE_CHANGED, MessagePasser.MessageType.EDIT_MODE_CHANGED);
     	
     	vertexShaderCode =
@@ -63,10 +64,10 @@ public class TextureRenderer extends GlRenderer implements MessagePasser.Message
 		textureHeight = camera.getHeight();
 		
         float[] quadVertices = {
-                0f,  0f, 0f,
-                textureWidth,  0, 0f,
-                textureWidth,  textureHeight, 0f,
-        		0f,  textureHeight, 0f
+                0,  0, 0,
+                textureWidth,  0, 0,
+                textureWidth,  textureHeight, 0,
+        		0,  textureHeight, 0
         };
         float[] textureVertices = {
                 0, 0,
@@ -146,7 +147,7 @@ public class TextureRenderer extends GlRenderer implements MessagePasser.Message
 		if (clearLastFrame) {
 			Log.d("TextureRenderer", "clearLastFrame is true, numCleared = " + numCleared);
 			numCleared++;
-			if (numCleared == 2) {
+			if (numCleared > 1) {
 				numCleared = 0;
 				clearLastFrame = false;
 			}
@@ -206,6 +207,7 @@ public class TextureRenderer extends GlRenderer implements MessagePasser.Message
 
 	@Override
 	public void ReceiveMessage(MessageType t, boolean value) {
+		Log.d("TextureRenderer", "Got message, clearing");
 		clear();
 	}
 }

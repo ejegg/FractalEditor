@@ -2,6 +2,8 @@ package com.ejegg.fractaldisplay;
 
 import java.util.Arrays;
 
+import com.ejegg.fractaldisplay.R;
+import com.ejegg.fractaldisplay.LoadActivity;
 import com.ejegg.fractaldisplay.MessagePasser.MessageType;
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.render.MainRenderer;
@@ -25,7 +27,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-public class DisplayActivity extends Activity implements
+public class FractalEditActivity extends Activity implements
 		FractalCalculatorTask.ProgressListener, OnClickListener,
 		DialogInterface.OnClickListener, MessagePasser.MessageListener {
 
@@ -33,16 +35,16 @@ public class DisplayActivity extends Activity implements
 	private FractalStateManager stateManager;
 	private MessagePasser passer;
 	private RenderModeManager renderManager;
-	private FractalDisplayView view;	
+	private FractalEditView view;	
 	private static final int LOAD_REQUEST = 1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_display);
+		setContentView(R.layout.activity_edit);
 		setButtons();
 
-		FractalDisplay appContext = (FractalDisplay) getApplicationContext();
+		FractalEditor appContext = (FractalEditor) getApplicationContext();
 		passer = appContext.getMessagePasser();
 		passer.Subscribe(this, MessageType.EDIT_MODE_CHANGED,
 				MessageType.SCALE_MODE_CHANGED,
@@ -54,11 +56,9 @@ public class DisplayActivity extends Activity implements
 
 		Camera camera = appContext.getCamera();
 
-		view = (FractalDisplayView) findViewById(R.id.fractalCanvas);
-		
-		MainRenderer mainRenderer = new MainRenderer(camera, stateManager, passer, view);
+		MainRenderer mainRenderer = new MainRenderer(camera, stateManager, passer);
 
-
+		view = (FractalEditView) findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
 		view.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
@@ -78,6 +78,7 @@ public class DisplayActivity extends Activity implements
 	protected void onResume() {
 		super.onPause();
 		view.onResume();
+		renderManager.checkAccumulate();
 	}
 	
 	private void setButtons() {
@@ -86,8 +87,7 @@ public class DisplayActivity extends Activity implements
 				R.id.modeButton, R.id.scaleModeButton)) {
 			Button button = (Button) findViewById(id);// who's got the button?
 			if (button == null) {
-				Log.d("DisplayActivity", "button " + id
-						+ " is null, can set click listener");
+				//Log.d("DisplayActivity", "button " + id + " is null, can set click listener");
 			} else {
 				button.setOnClickListener(this);
 			}
@@ -166,7 +166,7 @@ public class DisplayActivity extends Activity implements
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Log.d("main", "onActivityResult");
+		//Log.d("main", "onActivityResult");
 		switch (requestCode) {
 		case LOAD_REQUEST:
 			if (resultCode != RESULT_OK) {
@@ -175,7 +175,7 @@ public class DisplayActivity extends Activity implements
 				return;
 			}
 			Uri savedFractalUri = data.getData();
-			Log.d("main", "trying to load fractal with URI: " + savedFractalUri);
+			//Log.d("main", "trying to load fractal with URI: " + savedFractalUri);
 			stateManager
 					.loadStateFromUri(getContentResolver(), savedFractalUri);
 			break;

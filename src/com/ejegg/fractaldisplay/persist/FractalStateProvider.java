@@ -26,7 +26,7 @@ public class FractalStateProvider extends ContentProvider {
 	@Override
 	public boolean onCreate() {
 		helper = new FractalDatabaseHelper(getContext());
-		Log.d("fsp", "created fractal state provider");
+		//Log.d("fsp", "created fractal state provider");
 		return true;
 	}
     

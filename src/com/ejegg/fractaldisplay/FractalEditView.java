@@ -11,20 +11,20 @@ import com.ejegg.fractaldisplay.spatial.Camera;
 import com.ejegg.fractaldisplay.touch.MotionEventHandler;
 import com.ejegg.fractaldisplay.touch.MotionEventSubscriber;
 
-public class FractalDisplayView extends GLSurfaceView implements MotionEventSubscriber {
+public class FractalEditView extends GLSurfaceView implements MotionEventSubscriber {
 
 	private MotionEventHandler motionEventHandler;
-	private FractalDisplay appContext;
+	private FractalEditor appContext;
 	private FractalStateManager stateManager;
 	private Camera camera;
 	private MessagePasser messagePasser;
 	
-	public FractalDisplayView(Context context, AttributeSet attrs) {
+	public FractalEditView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		setEGLContextClientVersion(2);
 		motionEventHandler = new MotionEventHandler(context);
 		motionEventHandler.addSubscriber(this);
-		appContext = ((FractalDisplay)context.getApplicationContext());
+		appContext = ((FractalEditor)context.getApplicationContext());
 		camera = appContext.getCamera();
 		stateManager = appContext.getStateManager();
 		messagePasser = appContext.getMessagePasser();
@@ -45,7 +45,9 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 		if (camera.isMoving()) {
 			camera.stop();
 		} 
-		select(screenX, screenY);
+		if (stateManager.isEditMode()) {
+			select(screenX, screenY);
+		}
 	}
 
 	@Override
@@ -56,7 +58,7 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 	@Override
 	public void drag(float oldScreenX, float oldScreenY, float newScreenX,
 			float newScreenY) {
-		Log.d("View", "drag");
+		//Log.d("View", "drag");
 		if (manipulating()) {
 			float[] oldNear = new float[4];
 			float[] oldFar = new float[4];
@@ -87,7 +89,6 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 
 	@Override
 	public void rotate(float angle, float focusScreenX, float focusScreenY) {
-		Log.d("Camera", "Rotating " + angle);
 		if (manipulating()) {
 			stateManager.rotateSelectedTransform(angle, camera.intoScreen());
 		} else {
@@ -127,8 +128,8 @@ public class FractalDisplayView extends GLSurfaceView implements MotionEventSubs
 	}
 	
 	private boolean manipulating() {
-		Log.d("FractalDisplayView", "Edit mode is : " + stateManager.isEditMode());
-		Log.d("FractalDisplayView", "selected is : " + stateManager.getState().anyTransformSelected());
+		//Log.d("FractalDisplayView", "Edit mode is : " + stateManager.isEditMode());
+		//Log.d("FractalDisplayView", "selected is : " + stateManager.getState().anyTransformSelected());
 		return stateManager.isEditMode() && stateManager.getState().anyTransformSelected();
 	}
 }

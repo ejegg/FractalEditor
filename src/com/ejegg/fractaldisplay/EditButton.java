@@ -1,5 +1,7 @@
 package com.ejegg.fractaldisplay;
 
+import com.ejegg.fractaldisplay.R;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.Button;

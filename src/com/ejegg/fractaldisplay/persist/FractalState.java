@@ -85,6 +85,10 @@ public class FractalState {
 		return selectedTransform != NO_CUBE_SELECTED;
 	}
 	
+	public void clearSelection() {
+		selectedTransform = NO_CUBE_SELECTED;
+	}
+	
 	public void addTransform() {
 		int transformCount = getNumTransforms();
 
@@ -117,6 +121,7 @@ public class FractalState {
 			}
 		}
 		transforms = newTransforms;
+		clearSelection();
 	}
 	
 	public void rotateSelectedTransform(float angle, float[] axis) {

@@ -7,9 +7,11 @@ import com.ejegg.fractaldisplay.MessagePasser;
 import com.ejegg.fractaldisplay.MessagePasser.MessageType;
 import com.ejegg.fractaldisplay.persist.FractalStateManager;
 import com.ejegg.fractaldisplay.spatial.Camera;
+import com.ejegg.fractaldisplay.spatial.Vec;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 import android.util.Log;
 
 public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.MessageListener{
@@ -24,36 +26,35 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 	private MessagePasser passer;
 	private long lastCameraPosition;
 	private long newCameraPosition;
-	private GLSurfaceView view;
+	private float minDist = 100;
+	private float maxDist = -100;
 	
-	public MainRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer, GLSurfaceView view) {
+	public MainRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer) {
 		this.camera = camera;
 		this.stateManager = stateManager;
 		this.passer = passer;
-		this.view = view;
-		
-		passer.Subscribe(this, MessageType.NEW_POINTS_AVAILABLE, MessageType.ACCUMULATION_MOTION_CHANGED);
+		calculateMinMaxDist();
+		lastCameraPosition = camera.getLastMoveId();
+		passer.Subscribe(this, MessageType.NEW_POINTS_AVAILABLE, MessageType.ACCUMULATION_MODE_CHANGED, MessageType.CAMERA_MOTION_CHANGED, MessageType.STATE_CHANGED);
 	}
 
 	@Override
 	public void onDrawFrame(GL10 gl) {
 		editMode = stateManager.isEditMode();
-		Log.d("MainRenderer", "Requested frame, edit mode is " + editMode);
+		//Log.d("MainRenderer", "Requested frame, edit mode is " + editMode);
 		if (editMode) {
 			clear();
 			cubeRenderer.draw();
 		} else {
 			newCameraPosition = camera.getLastMoveId();
-			if ((newCameraPosition == lastCameraPosition) && accumulatePoints) {
+			if (newCameraPosition == lastCameraPosition) {
 				textureRenderer.preRender();
-				fractalRenderer.draw(true);
+				fractalRenderer.draw(true, minDist, maxDist);
 				textureRenderer.draw();
-				if (fractalRenderer.getBufferIndex() > 0) {
-					view.requestRender();
-				}
+				stateManager.incrementBufferIndex();
 			} else {
 				clear();
-				fractalRenderer.draw(false);	
+				fractalRenderer.draw(false, 0, 0);	
 			}
 			lastCameraPosition = newCameraPosition;
 		}
@@ -72,16 +73,18 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		Log.d("MainRenderer", "onSurfaceChanged");
 		GLES20.glViewport(0, 0, width, height);
 		camera.setScreenDimensions(width,height);
+		
 		if (textureRenderer != null) {
 			textureRenderer.freeResources();
 		}
 		textureRenderer = new TextureRenderer(camera, stateManager, passer);
-		Log.d("MainRenderer", "Done onSurfaceChanged");
+		
+		//Log.d("MainRenderer", "Done onSurfaceChanged");
 	}
 
 	@Override
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-		Log.d("MainRenderer", "Starting onSurfaceCreated");
+		//Log.d("MainRenderer", "Starting onSurfaceCreated");
 		GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		GLES20.glEnable(GLES20.GL_BLEND);
 		GLES20.glClearDepthf(1.0f);
@@ -95,7 +98,7 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		fractalRenderer = new FractalRenderer(camera, stateManager);
 		cubeRenderer = new CubeRenderer(camera, stateManager);
 		
-		Log.d("MainRenderer", "Done onSurfaceCreated");
+		//Log.d("MainRenderer", "Done onSurfaceCreated");
 	}
 
 	@Override
@@ -103,10 +106,49 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		switch(type){
 			case NEW_POINTS_AVAILABLE:
 				accumulatePoints = value;
+				if (minDist > maxDist) {
+					Log.d("MainRenderer", String.format("MinDist is %f, MaxDist is %f", minDist, maxDist));
+					calculateMinMaxDist();
+				}
 				break;
-			case ACCUMULATION_MOTION_CHANGED:
+			case ACCUMULATION_MODE_CHANGED:
 				accumulatePoints = accumulatePoints || value;
 				break;
+			case STATE_CHANGED:
+				minDist = 100;
+				maxDist = -100;
+				textureRenderer.clear();
+				break;
+			case CAMERA_MOTION_CHANGED:
+				if (value) {
+					calculateMinMaxDist();
+				}
+		}
+	}
+
+	private void calculateMinMaxDist() {
+		minDist = 100;
+		maxDist = -100;
+		if (!stateManager.hasPoints()) {return;}
+		float[] bbox = stateManager.getBoundingBox();
+		float[] mvpMatrix = camera.getMVPMatrix();
+		float[] vec = new float[4];
+		Log.d("MainRenderer", String.format("Calculating max/min distances: X: [%f, %f], Y: [%f, %f], Z: [%f, %f] ", 
+				bbox[0], bbox[3], bbox[1], bbox[4], bbox[2], bbox[5]));
+		float dist;
+		for (int i = 0; i < 8 ; i++ ) {
+			int xInd = i < 4 ? 0 : 3;
+			int yInd = i % 4 < 2 ? 1 : 4;
+			int zInd = i % 2 == 0 ? 2 : 5;
+			float[] vertex = new float[] {bbox[xInd], bbox[yInd], bbox[zInd], 1.0f};
+
+			Matrix.multiplyMV(vec, 0, mvpMatrix, 0, vertex, 0);
+
+			dist = vec[2];
+			Log.d("MainRenderer", String.format("Vertex %d (%f, %f, %f): Distance is %f ", 
+					i, vertex[0], vertex[1], vertex[2], dist));
+			minDist = Math.min(minDist, dist);
+			maxDist = Math.max(maxDist, dist);
 		}
 	}
 }
