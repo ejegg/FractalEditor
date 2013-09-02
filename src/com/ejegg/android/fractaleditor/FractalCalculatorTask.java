@@ -29,24 +29,24 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     }
     
     @Override
-        protected FloatBuffer doInBackground(Request... fractalRequest) {
-                //Log.d("FractalCalculatorTask", "Starting calculation");
-                int numPoints = fractalRequest[0].getNumPoints();
-                int numTransforms = fractalRequest[0].getFractal().getNumTransforms();
-                float[][] transforms = fractalRequest[0].getFractal().getTransforms();
-                float[] transform;
-                float[] fractalPoints = null;
-                boundingBox[0] = boundingBox[1] = boundingBox[2] = 10; // minima
-                boundingBox[3] = boundingBox[4] = boundingBox[5] = -10; //maxima
-                if (pointsRef != null) {
-                        fractalPoints = pointsRef.get(); //assuming numPoints does not change!!
-                }
-                
-                if (fractalPoints == null) {
-                        Log.d("FractalCalculatorTask", "Allocating new points buffer");
-                        fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
-                        pointsRef = new SoftReference<float[]>(fractalPoints);
-                }
+    protected FloatBuffer doInBackground(Request... fractalRequest) {
+        //Log.d("FractalCalculatorTask", "Starting calculation");
+        int numPoints = fractalRequest[0].getNumPoints();
+        int numTransforms = fractalRequest[0].getFractal().getNumTransforms();
+        float[][] transforms = fractalRequest[0].getFractal().getTransforms();
+        float[] transform;
+        float[] fractalPoints = null;
+        boundingBox[0] = boundingBox[1] = boundingBox[2] = 10; // minima
+        boundingBox[3] = boundingBox[4] = boundingBox[5] = -10; //maxima
+        if (pointsRef != null) {
+                fractalPoints = pointsRef.get(); //assuming numPoints does not change!!
+        }
+        
+        if (fractalPoints == null) {
+                Log.d("FractalCalculatorTask", "Allocating new points buffer");
+                fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
+                pointsRef = new SoftReference<float[]>(fractalPoints);
+        }
         for(int i = 0; i < 3; i++) {
                 fractalPoints[i] = r.nextFloat() * 2.0f - 1.0f;
         }

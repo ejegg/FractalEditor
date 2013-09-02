@@ -6,14 +6,22 @@ import com.ejegg.android.fractaleditor.spatial.Vec;
 import android.opengl.Matrix;
 
 public class FractalState {
+	private int deviceId; //ID local to device
+	private int sharedId; //ID on shared site
+	private String name;
 	private int selectedTransform = NO_CUBE_SELECTED;
 	private float[][] transforms;
-	private static float[][] axes = {{ 1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}};
+	private final static float[][] axes = {{ 1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}};
 	
 	public static final int NO_CUBE_SELECTED = -1;
 	
-	public FractalState(int numTransforms, float[][] transforms) {
+	public FractalState(int deviceId, int sharedId, String name, int numTransforms, float[][] transforms) {
 		this.transforms = new float[numTransforms][16];
+		
+		this.deviceId = deviceId;
+		this.sharedId = sharedId;
+		this.name = name;
+		
 		if (transforms != null) {
 			for (int i = 0; i < numTransforms; i++) {
 				System.arraycopy(transforms[i], 0, this.transforms[i], 0, 16);
@@ -22,13 +30,14 @@ public class FractalState {
 	}
 	
 	public FractalState clone() {
-		FractalState state = new FractalState(getNumTransforms(), transforms);
+		FractalState state = new FractalState(getDeviceId(), getSharedId(), getName(), getNumTransforms(), transforms);
 		state.setSelectedTransform(selectedTransform);
 		return state;
 	}
 	
-	public FractalState(int numTransforms, String serializedTransforms) {
-		this(numTransforms, (float[][]) null);
+	public FractalState(int deviceId, int sharedId, String name, int numTransforms, String serializedTransforms) {
+		this(deviceId, sharedId, name, numTransforms, (float[][]) null);
+		
 		String[] splitTransforms = serializedTransforms.split(" ");
 		transforms = new float[numTransforms][16];
 		for (int t = 0; t< numTransforms; t++) {
@@ -213,5 +222,29 @@ public class FractalState {
 			targetTransform[12 + i] += newNear[i] - oldNear[i] + minA * ((newFar[i] - newNear[i]) - (oldFar[i] - oldNear[i]));  
 		}
 		transforms[selectedTransform] = targetTransform;
+	}
+
+	public int getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(int deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public int getSharedId() {
+		return sharedId;
+	}
+
+	public void setSharedId(int sharedId) {
+		this.sharedId = sharedId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

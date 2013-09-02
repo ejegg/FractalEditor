@@ -3,6 +3,7 @@
     android:id="@+id/saved_fractal_name"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:textAppearance="?android:attr/textAppearanceListItem" >
+    android:textAppearance="?android:attr/textAppearanceMedium" 
+    android:padding="10dp">
 
 </TextView>

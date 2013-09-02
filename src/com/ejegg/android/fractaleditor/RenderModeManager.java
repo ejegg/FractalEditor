@@ -24,7 +24,7 @@ public class RenderModeManager implements MessagePasser.MessageListener{
 		cameraMoving = camera.isMoving();
 		this.view = view;
 		this.stateManager = stateManager;
-		Log.d("RenderModeManager", "constructed");
+		//Log.d("RenderModeManager", "constructed");
 		checkAccumulate();
 	}
 
@@ -34,7 +34,7 @@ public class RenderModeManager implements MessagePasser.MessageListener{
 
 	@Override
 	public void ReceiveMessage(MessageType t, boolean value) {
-		Log.d("RenderModeManager", "Got message of type " + t + ", value= "+ value);
+		//Log.d("RenderModeManager", "Got message of type " + t + ", value= "+ value);
 		switch (t) {
 			case CAMERA_MOTION_CHANGED:
 				cameraMoving = value;

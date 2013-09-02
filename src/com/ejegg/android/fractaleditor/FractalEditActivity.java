@@ -22,7 +22,9 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.WindowManager.LayoutParams;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -48,7 +50,8 @@ public class FractalEditActivity extends Activity implements
 		passer = appContext.getMessagePasser();
 		passer.Subscribe(this, MessageType.EDIT_MODE_CHANGED,
 				MessageType.SCALE_MODE_CHANGED,
-				MessageType.UNDO_ENABLED_CHANGED);
+				MessageType.UNDO_ENABLED_CHANGED,
+				MessageType.STATE_SAVED);
 
 		stateManager = appContext.getStateManager();
 		stateManager.setCalculationListener(this);
@@ -139,16 +142,21 @@ public class FractalEditActivity extends Activity implements
 			break;
 		case R.id.saveButton:
 			Dialog d = new Dialog(this);
-			d.setContentView(R.layout.activity_save);
+			d.setContentView(R.layout.dialog_save);
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.title_activity_save)
 					.setView(
-							getLayoutInflater().inflate(R.layout.activity_save,
+							getLayoutInflater().inflate(R.layout.dialog_save,
 									(ViewGroup) getCurrentFocus()))
 					.setPositiveButton(R.string.save_ok, this)
-					.setNegativeButton(R.string.save_cancel, this);
+					.setNegativeButton(R.string.dialog_cancel, this);
 			AlertDialog ad = builder.create();
 			ad.show();
+			EditText t = (EditText) ad.findViewById(R.id.save_name_entry);
+			String currentName = stateManager.getState().getName();
+			t.setText(currentName);
+			t.setSelection(0, currentName.length());
+			ad.getWindow().setSoftInputMode(LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 			break;
 		default:
 			break;
@@ -166,7 +174,6 @@ public class FractalEditActivity extends Activity implements
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		//Log.d("main", "onActivityResult");
 		switch (requestCode) {
 		case LOAD_REQUEST:
 			if (resultCode != RESULT_OK) {
@@ -175,34 +182,38 @@ public class FractalEditActivity extends Activity implements
 				return;
 			}
 			Uri savedFractalUri = data.getData();
-			//Log.d("main", "trying to load fractal with URI: " + savedFractalUri);
-			stateManager
-					.loadStateFromUri(getContentResolver(), savedFractalUri);
+			stateManager.loadStateFromUri(getContentResolver(), savedFractalUri);
 			break;
 		}
-
 	}
-
+	
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
-		switch (which) {
-		case DialogInterface.BUTTON_NEGATIVE:
+		
+		if (which == DialogInterface.BUTTON_NEGATIVE) {
 			Toast.makeText(this, "Canceled", Toast.LENGTH_SHORT).show();
-			break;
-		case DialogInterface.BUTTON_POSITIVE:
-			EditText t = (EditText) ((AlertDialog) dialog)
-					.findViewById(R.id.save_name_entry);
-			String name = t.getText().toString();
-			boolean success = stateManager.save(getContentResolver(), name);
-			Toast.makeText(this,
-					success ? "Fractal saved" : "Error saving fractal",
-					Toast.LENGTH_LONG).show();
-			break;
+			return;
+		}
+		
+		EditText t = (EditText) ((AlertDialog) dialog).findViewById(R.id.save_name_entry);
+		CheckBox cb = (CheckBox) ((AlertDialog) dialog).findViewById(R.id.upload_checkbox);
+		String name = t.getText().toString();
+		
+		if (cb.isChecked()) {
+			stateManager.save(getContentResolver(), name, getResources().getString(R.string.upload_url));
+		} else {
+			stateManager.save(getContentResolver(), name);
 		}
 	}
 
 	@Override
 	public void ReceiveMessage(MessageType type, boolean value) {
-		setButtonStates();
+		switch(type) {
+		case STATE_SAVED:
+			Toast.makeText(this, value ? "Fractal saved" : "Error saving fractal", Toast.LENGTH_LONG).show();
+			break;
+		default:
+			setButtonStates();
+		}
 	}
 }

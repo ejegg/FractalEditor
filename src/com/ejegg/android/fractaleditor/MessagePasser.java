@@ -22,7 +22,8 @@ public class MessagePasser {
 		SCREEN_TOUCHED,
 		CAMERA_MOTION_CHANGED,
 		ACCUMULATION_MODE_CHANGED,
-		CAMERA_MOVED,
+		CAMERA_MOVED, 
+		STATE_SAVED,
 	}
 	
 	public interface MessageListener {

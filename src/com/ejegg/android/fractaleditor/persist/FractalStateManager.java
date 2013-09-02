@@ -1,7 +1,18 @@
 package com.ejegg.android.fractaleditor.persist;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 
 import com.ejegg.android.fractaleditor.FractalCalculatorTask;
 import com.ejegg.android.fractaleditor.MessagePasser;
@@ -9,10 +20,12 @@ import com.ejegg.android.fractaleditor.FractalCalculatorTask.ResultListener;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 
+import android.R;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.Log;
 
 public class FractalStateManager implements ResultListener {
@@ -33,7 +46,8 @@ public class FractalStateManager implements ResultListener {
 	private MessagePasser messagePasser;
 	private FractalCalculatorTask.ProgressListener calculationListener;
 	private FractalState lastState = null;
-    private FractalState State = new FractalState(4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
+    private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid",
+    											  4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " + 
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
@@ -100,30 +114,81 @@ public class FractalStateManager implements ResultListener {
 	}
 	
 	public void loadStateFromUri(ContentResolver contentResolver, Uri savedFractalUri) {
-		Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.COLUMNS, null, null, null);
+		Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
 		cursor.moveToFirst();
-		State = new FractalState(cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.TRANSFORM_COUNT)),
-				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS)));
+		State = new FractalState(
+				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
+				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.SHARED_ID)),
+				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.NAME)),
+				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.TRANSFORM_COUNT)),
+				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
+				);
+
 		cursor.close();
 		undoStack.clear();
 		sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
 		stateChanged();
 	}
 
-	public boolean save(ContentResolver contentResolver, String saveName) {
-		try {
-			ContentValues val = new ContentValues();
-			val.put(FractalStateProvider.Items.NAME, saveName);
-			val.put(FractalStateProvider.Items.TRANSFORM_COUNT, State.getNumTransforms());
-			val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, State.getSerializedTransforms());
-			val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());
-			contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
+	protected class Saver extends AsyncTask<String, Integer, Boolean> {
+
+		private ContentResolver contentResolver;
+		private String url;
+
+		public Saver(ContentResolver contentResolver) {
+			this.contentResolver = contentResolver;
 		}
-		catch (Exception e) {
-			//Log.d("fview", "Error saving: " + e.getMessage() + e.getStackTrace());
-			return false;
+
+		public Saver(ContentResolver contentResolver, String url) {
+			this(contentResolver);
+			this.url = url;
 		}
-		return true;
+
+		@Override
+		protected Boolean doInBackground(String... params) {
+			String saveName = params[0];
+			
+			try {
+				Log.d("Saver", saveName);
+				ContentValues val = new ContentValues();
+				val.put(FractalStateProvider.Items.NAME, saveName);
+				val.put(FractalStateProvider.Items.TRANSFORM_COUNT, State.getNumTransforms());
+				val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, State.getSerializedTransforms());
+				val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());
+				contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
+				
+				if (url != null) {
+					HttpClient client = new DefaultHttpClient();
+					HttpPost post = new HttpPost("http://fractaleditor.ejegg.com/fractal/save");
+					List<NameValuePair> pairs = new ArrayList<NameValuePair>(2);
+					pairs.add(new BasicNameValuePair("name", saveName));
+					pairs.add(new BasicNameValuePair("serializedTransforms", State.getSerializedTransforms()));
+					post.setEntity(new UrlEncodedFormEntity(pairs));
+					
+					HttpResponse response = client.execute(post);
+					String result = EntityUtils.toString(response.getEntity());
+					Log.d("FractalStateManager", "Saved, got response: " + result);
+				}
+			}
+			catch (Exception e) {
+				Log.d("FractalStateManager", "Error saving: " + e.getMessage() + e.getStackTrace());
+				return false;
+			}
+			return true;
+		}
+		
+	    protected void onPostExecute(Boolean success){
+	    	Log.d("Saver", "Done with result: " + success);
+	    	FractalStateManager.this.sendMessage(MessageType.STATE_SAVED, success);
+	    }
+	}
+	
+	public void save(ContentResolver contentResolver, String saveName) {
+		new Saver(contentResolver).execute(saveName);
+	}
+
+	public void save(ContentResolver contentResolver, String saveName, String url) {
+		new Saver(contentResolver, url).execute(saveName);
 	}
 
 	public void setCalculationListener(FractalCalculatorTask.ProgressListener calculationListener) {

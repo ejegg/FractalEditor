@@ -21,12 +21,11 @@ public class FractalStateProvider extends ContentProvider {
 	public static final Uri CONTENT_URI = Uri.parse("content://com.ejegg.android.fractaleditor.persist.FractalState");
 	private static final String DATABASE_NAME = "fractaleditor";
 	private static final String TABLE_NAME = "fractalstates";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
 	@Override
 	public boolean onCreate() {
 		helper = new FractalDatabaseHelper(getContext());
-		//Log.d("fsp", "created fractal state provider");
 		return true;
 	}
     
@@ -70,16 +69,17 @@ public class FractalStateProvider extends ContentProvider {
 	}
 	
 	public static class Items implements BaseColumns {
+	    public static final String SHARED_ID = "sharedId";
 	    public static final String NAME = "name";
 	    public static final String TRANSFORM_COUNT = "transformCount";
 	    public static final String SERIALIZED_TRANSFORMS = "serializedTransforms";
 	    public static final String THUMBNAIL = "thumbnail";
 	    public static final String LAST_UPDATED = "lastUpdated";
-	    public static final String[] COLUMNS = {NAME, TRANSFORM_COUNT, SERIALIZED_TRANSFORMS, THUMBNAIL, LAST_UPDATED};
-	    public static final String[] ALL_COLUMNS = {BaseColumns._ID, NAME, TRANSFORM_COUNT, SERIALIZED_TRANSFORMS, THUMBNAIL, LAST_UPDATED};
+	    public static final String[] COLUMNS = {SHARED_ID, NAME, TRANSFORM_COUNT, SERIALIZED_TRANSFORMS, THUMBNAIL, LAST_UPDATED};
+	    public static final String[] ALL_COLUMNS = {BaseColumns._ID, SHARED_ID, NAME, TRANSFORM_COUNT, SERIALIZED_TRANSFORMS, THUMBNAIL, LAST_UPDATED};
 	}
 
-	  private String getSelectionFromId(Uri uri, String selection) {
+	private String getSelectionFromId(Uri uri, String selection) {
 	    long id = ContentUris.parseId(uri);
 	    if (id == -1) {
 	      return selection;
@@ -87,7 +87,7 @@ public class FractalStateProvider extends ContentProvider {
 	    String realSelection = selection == null ? "" : selection + " and ";
 	    realSelection += Items._ID + " = " + id;
 	    return realSelection;
-	  }
+	}
 
 	protected static class FractalDatabaseHelper extends SQLiteOpenHelper {
 
@@ -96,6 +96,7 @@ public class FractalStateProvider extends ContentProvider {
 	    private static final String FRACTAL_TABLE_CREATE =
 	                "CREATE TABLE " + TABLE_NAME + " (" +
 	                Items._ID + " INTEGER PRIMARY KEY, " +
+	                Items.SHARED_ID + " INTEGER, " +
 	                Items.NAME + " TEXT UNIQUE, " +
 	                Items.TRANSFORM_COUNT + " INTEGER, " +
 	                Items.SERIALIZED_TRANSFORMS + " TEXT, " +
@@ -114,29 +115,32 @@ public class FractalStateProvider extends ContentProvider {
 	    @Override
 	    public void onOpen(SQLiteDatabase db) {
 	    	if (db.isReadOnly()) return;
-			for (String name : demoFractals.keySet()) {
-				insertFractal(db, name, demoFractals.get(name));
-			}
 	    }
+	    
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(FRACTAL_TABLE_CREATE);
+			for (String name : demoFractals.keySet()) {
+				insertFractal(db, name, demoFractals.get(name));
+			}
 		}
-
 		
-		private void insertFractal(SQLiteDatabase db, String name, String transforms)
-		{
+		private void insertFractal(SQLiteDatabase db, String name, String transforms) {
+			Log.d("Provider", "insertFractal");
 			int numT = transforms.split(" ").length / 16;
 			db.execSQL(String.format("INSERT OR IGNORE INTO %s (%s, %s, %s, %s) VALUES(?, ?, ?, ?)", 
 					TABLE_NAME, Items.NAME, Items.TRANSFORM_COUNT, Items.SERIALIZED_TRANSFORMS, Items.LAST_UPDATED),
 					new Object[] { name, numT, transforms, System.currentTimeMillis()});
-			
 		}
 		
 		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			// nothing yet!
+			Log.d("Provider", "updating from " + oldVersion + " to " + newVersion);
+			if (oldVersion < 2 && newVersion > 2) {
+				String addSharedId = String.format("ALTER TABLE %s ADD COLUMN %s INTEGER", TABLE_NAME, Items.SHARED_ID);
+				Log.d("Provider", addSharedId);
+				db.execSQL(addSharedId);
+			}
 		}
-
 	}
 }
