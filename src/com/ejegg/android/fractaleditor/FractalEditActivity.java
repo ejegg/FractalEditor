@@ -1,5 +1,6 @@
 package com.ejegg.android.fractaleditor;
 
+import java.net.MalformedURLException;
 import java.util.Arrays;
 
 import com.ejegg.android.fractaleditor.LoadActivity;
@@ -17,7 +18,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.util.Log;
+import android.content.res.Resources.NotFoundException;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -200,7 +201,13 @@ public class FractalEditActivity extends Activity implements
 		String name = t.getText().toString();
 		
 		if (cb.isChecked()) {
-			stateManager.save(getContentResolver(), name, getResources().getString(R.string.upload_url));
+			try {
+				stateManager.save(getContentResolver(), name, getResources().getString(R.string.upload_url));
+			} catch (MalformedURLException e) {
+				Toast.makeText( this, "Upload failed - Malformed URL", Toast.LENGTH_SHORT).show();
+			} catch (NotFoundException e) {
+				Toast.makeText( this, "Upload failed - URL not found", Toast.LENGTH_SHORT).show();
+			}
 		} else {
 			stateManager.save(getContentResolver(), name);
 		}

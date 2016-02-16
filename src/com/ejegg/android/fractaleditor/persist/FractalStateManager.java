@@ -1,18 +1,12 @@
 package com.ejegg.android.fractaleditor.persist;
 
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Stack;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 
 import com.ejegg.android.fractaleditor.FractalCalculatorTask;
 import com.ejegg.android.fractaleditor.MessagePasser;
@@ -20,7 +14,6 @@ import com.ejegg.android.fractaleditor.FractalCalculatorTask.ResultListener;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 
-import android.R;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -133,41 +126,62 @@ public class FractalStateManager implements ResultListener {
 	protected class Saver extends AsyncTask<String, Integer, Boolean> {
 
 		private ContentResolver contentResolver;
-		private String url;
+		private URL url;
 
 		public Saver(ContentResolver contentResolver) {
 			this.contentResolver = contentResolver;
 		}
 
-		public Saver(ContentResolver contentResolver, String url) {
+		public Saver(ContentResolver contentResolver, String url) throws MalformedURLException {
 			this(contentResolver);
-			this.url = url;
+			this.url = new URL(url);
 		}
 
 		@Override
 		protected Boolean doInBackground(String... params) {
 			String saveName = params[0];
+			String transforms = State.getSerializedTransforms();
 			
 			try {
 				Log.d("Saver", saveName);
 				ContentValues val = new ContentValues();
 				val.put(FractalStateProvider.Items.NAME, saveName);
 				val.put(FractalStateProvider.Items.TRANSFORM_COUNT, State.getNumTransforms());
-				val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, State.getSerializedTransforms());
+				val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, transforms);
 				val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());
 				contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
 				
 				if (url != null) {
-					HttpClient client = new DefaultHttpClient();
-					HttpPost post = new HttpPost("http://fractaleditor.ejegg.com/fractal/save");
-					List<NameValuePair> pairs = new ArrayList<NameValuePair>(2);
-					pairs.add(new BasicNameValuePair("name", saveName));
-					pairs.add(new BasicNameValuePair("serializedTransforms", State.getSerializedTransforms()));
-					post.setEntity(new UrlEncodedFormEntity(pairs));
-					
-					HttpResponse response = client.execute(post);
-					String result = EntityUtils.toString(response.getEntity());
-					Log.d("FractalStateManager", "Saved, got response: " + result);
+					HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+					byte[] postBytes = String.format(
+							"name=%s&serializedTransforms=%s",
+							URLEncoder.encode( saveName, "UTF-8" ),
+							URLEncoder.encode( transforms, "ASCII" )
+					).getBytes("UTF-8");
+					try {
+						connection.setDoOutput(true);
+						connection.setRequestProperty("Accept-Charset", "UTF-8");
+						connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+						connection.setRequestProperty("Content-Length", Integer.toString(postBytes.length));
+
+						OutputStream out = connection.getOutputStream();
+						out.write(postBytes);
+
+						int responseLength = Math.min(1000, Integer.parseInt(connection.getHeaderField("Content-Length")));
+						byte[] responseBuffer = new byte[responseLength];
+						connection.getInputStream().read(responseBuffer);
+						String response = new String(responseBuffer, "UTF-8");
+						Log.d("FractalStateManager", "Attempted upload, got response: " + response);
+						if (response.startsWith("Error")) {
+							throw new Exception(response);
+						}
+					}
+					catch( Exception e ) {
+						Log.e("FractalStateManager", "Exception trying to upload: " + e.getMessage());
+					}
+					finally {
+						connection.disconnect();
+					}
 				}
 			}
 			catch (Exception e) {
