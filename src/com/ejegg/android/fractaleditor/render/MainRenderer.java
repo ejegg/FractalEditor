@@ -31,15 +31,27 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 	private long newCameraPosition;
 	private float minDist = 100;
 	private float maxDist = -100;
-	private Bitmap thumbnail;
-	
+	private int[] thumbnailBuffer;
+	private int thumbWidth;
+	private int thumbHeight;
+	private IntBuffer wrappedThumbnailBuffer;
+
 	public MainRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer) {
 		this.camera = camera;
 		this.stateManager = stateManager;
 		this.passer = passer;
+		createThumbnailBuffers();
 		calculateMinMaxDist();
 		lastCameraPosition = camera.getLastMoveId();
 		passer.Subscribe(this, MessageType.NEW_POINTS_AVAILABLE, MessageType.ACCUMULATION_MODE_CHANGED, MessageType.CAMERA_MOTION_CHANGED, MessageType.STATE_CHANGED);
+	}
+
+	private void createThumbnailBuffers() {
+		thumbWidth = camera.getWidth();
+		thumbHeight = camera.getHeight();
+		Log.d("MainRenderer", String.format("Creating buffers, width=%s, height=%s", thumbWidth, thumbHeight));
+		thumbnailBuffer = new int[thumbWidth * thumbHeight];
+		wrappedThumbnailBuffer = IntBuffer.wrap(thumbnailBuffer);
 	}
 
 	@Override
@@ -63,7 +75,7 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 			lastCameraPosition = newCameraPosition;
 		}
 		if (renderThumbnail) {
-			createBitmap();
+			grabPixels();
 			renderThumbnail = false;
 		}
 		if (camera.isMoving()) {
@@ -80,7 +92,7 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		Log.d("MainRenderer", "onSurfaceChanged");
 		GLES20.glViewport(0, 0, width, height);
 		camera.setScreenDimensions(width,height);
-		
+		createThumbnailBuffers();
 		if (textureRenderer != null) {
 			textureRenderer.freeResources();
 		}
@@ -162,34 +174,37 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		}
 	}
 
-	public Bitmap getThumbnail() {
-		return thumbnail;
+	private void grabPixels() {
+		wrappedThumbnailBuffer.position(0);
+		GLES20.glReadPixels(
+				0,
+				0,
+				camera.getWidth(),
+				camera.getHeight(),
+				GLES20.GL_RGBA,
+				GLES20.GL_UNSIGNED_BYTE,
+				wrappedThumbnailBuffer);
+		Log.d("MainRenderer", "Grabbed thumbnail pixels");
 	}
 
-	private void createBitmap() {
-		int width = camera.getWidth();
-		int height = camera.getHeight();
-		Log.d("MainRenderer", String.format("Creating bitmap, width=%s, height=%s", width, height));
-		int b[]=new int[width*height];
-		int bt[]=new int[width*height];
-		IntBuffer ib = IntBuffer.wrap(b);
-		Log.d("MainRenderer", "Created buffers");
-		ib.position(0);
-		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, ib);
-		Log.d("MainRenderer", "did glReadPixels");
-		for(int i=0, k=0; i<height; i++, k++) {
+	public Bitmap getThumbnail() {
+		// Cribbed from http://stackoverflow.com/questions/20606295/when-using-gles20-glreadpixels-on-android-the-data-returned-by-it-is-not-exactl
+		Log.d("MainRenderer", String.format("Creating bitmap, width=%s, height=%s", thumbWidth, thumbHeight));
+		int bt[] = new int[thumbWidth * thumbHeight];
+		Log.d("MainRenderer", "Created buffer");
+
+		for(int i = 0, k = 0; i < thumbHeight; i++, k++) {
 			// OpenGL bitmap is incompatible with Android bitmap
 			// and so, some correction is needed.
-			for(int j=0; j<width; j++) {
-				int pix=b[i*width+j];
-				int pb=(pix>>16)&0xff;
-				int pr=(pix<<16)&0x00ff0000;
-				int pix1=(pix&0xff00ff00) | pr | pb;
-				bt[(height-k-1)*width+j]=pix1;
+			for(int j = 0; j < thumbWidth; j++) {
+				int pix = thumbnailBuffer[i * thumbWidth + j];
+				int pb = (pix >> 16) & 0xff;
+				int pr = (pix << 16) & 0x00ff0000;
+				int pix1 = (pix & 0xff00ff00) | pr | pb;
+				bt[(thumbHeight - k - 1) * thumbWidth + j] = pix1;
 			}
 		}
 		Log.d("MainRenderer", "Transformed buffer to android format");
-		thumbnail = Bitmap.createBitmap(bt, width, height, Bitmap.Config.ARGB_8888);
-		Log.d("MainRenderer", "Created bitmap");
+		return Bitmap.createBitmap(bt, thumbWidth, thumbHeight, Bitmap.Config.ARGB_8888);
 	}
 }
