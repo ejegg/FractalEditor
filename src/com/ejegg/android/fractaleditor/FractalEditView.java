@@ -13,11 +13,11 @@ import com.ejegg.android.fractaleditor.touch.MotionEventSubscriber;
 
 public class FractalEditView extends GLSurfaceView implements MotionEventSubscriber {
 
-	private MotionEventHandler motionEventHandler;
-	private FractalEditor appContext;
-	private FractalStateManager stateManager;
-	private Camera camera;
-	private MessagePasser messagePasser;
+	private final MotionEventHandler motionEventHandler;
+	private final FractalEditor appContext;
+	private final FractalStateManager stateManager;
+	private final Camera camera;
+	private final MessagePasser messagePasser;
 	
 	public FractalEditView(Context context, AttributeSet attrs) {
 		super(context, attrs);

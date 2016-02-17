@@ -35,13 +35,13 @@ public class FractalStateManager implements ResultListener {
     private boolean continuousCalculation = false;
     private int calculationRepeatCount = 0;
     private static final int MAX_CALCULATION_REPEAT = 25;
-	private Stack<FractalState> undoStack = new Stack<FractalState>();
+	private final Stack<FractalState> undoStack = new Stack<FractalState>();
 	private boolean uniformScaleMode = true;
 	
 	private static final int BUFFER_MULTIPLE = 3;
 	private int bufferIndex = 0;
 	
-	private MessagePasser messagePasser;
+	private final MessagePasser messagePasser;
 	private FractalCalculatorTask.ProgressListener calculationListener;
 	private FractalState lastState = null;
     private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid",
@@ -112,7 +112,7 @@ public class FractalStateManager implements ResultListener {
 	}
 	
 	public void loadStateFromUri(ContentResolver contentResolver, Uri savedFractalUri) {
-		Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
+		final Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
 		cursor.moveToFirst();
 		State = new FractalState(
 				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),

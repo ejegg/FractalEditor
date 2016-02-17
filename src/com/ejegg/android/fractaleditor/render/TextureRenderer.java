@@ -16,17 +16,17 @@ import com.ejegg.android.fractaleditor.spatial.Camera;
 
 public class TextureRenderer extends GlRenderer implements MessagePasser.MessageListener {
 
-	private int[] frameBuffer;
-	private int[] depthRenderBuffer;
-	private int[] textures;
-	private int textureWidth, textureHeight;
+	private final int[] frameBuffer;
+	private final int[] depthRenderBuffer;
+	private final int[] textures;
+	private final int textureWidth, textureHeight;
 	private int drawToTexture = 0, numCleared = 0;
 	private int lastFrameTexture = 1;
 	private boolean clearLastFrame = true;
-    private final float[] projectionMatrix = new float[16];
-    private int mPositionHandle, mMVPMatrixHandle, textureHandle, texturePositionHandle, alphaHandle;
+	private final float[] projectionMatrix = new float[16];
+	private final int mPositionHandle, mMVPMatrixHandle, textureHandle, texturePositionHandle, alphaHandle;
 
-	private FloatBuffer pointBuffer, textureCoordinateBuffer;
+	private final FloatBuffer pointBuffer, textureCoordinateBuffer;
 	private long lastCameraMoveId = 0;
 
     public TextureRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer) {

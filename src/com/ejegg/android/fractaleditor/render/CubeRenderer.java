@@ -59,12 +59,12 @@ public class CubeRenderer extends GlRenderer {
                  0.294f, 0, 0.505f, 0.9f};
     
     private FloatBuffer pointBuffer, colorBuffer;
-    private int vertexCount = 36;
-    private int selectedHandle;
-    private int mvpMatrixHandle;
-    private int transformMatrixHandle;      
-    private int colorHandle;
-    private int positionHandle;
+    private final int vertexCount = 36;
+    private final int selectedHandle;
+    private final int mvpMatrixHandle;
+    private final int transformMatrixHandle;
+    private final int colorHandle;
+    private final int positionHandle;
     public CubeRenderer(Camera camera, FractalStateManager stateManager) {
         super(camera, stateManager);
         setColors();
@@ -138,11 +138,11 @@ public class CubeRenderer extends GlRenderer {
     
     public void draw() {
         //Log.d("CubeRenderer", "draw");
-        float[] mvpMatrix = camera.getMVPMatrix();
-        FractalState state = stateManager.getState();
-        int numTransforms = state.getNumTransforms();
-        int selectedTransform = state.getSelectedTransform();
-        float[][] transforms = state.getTransforms();
+        final float[] mvpMatrix = camera.getMVPMatrix();
+        final FractalState state = stateManager.getState();
+        final int numTransforms = state.getNumTransforms();
+        final int selectedTransform = state.getSelectedTransform();
+        final float[][] transforms = state.getTransforms();
         GLES20.glEnable( GLES20.GL_DEPTH_TEST );
         GLES20.glUseProgram(programHandle);
         //checkGlError("CubeRenderer", "glUseProgram");

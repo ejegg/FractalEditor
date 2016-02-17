@@ -14,8 +14,8 @@ public abstract class GlRenderer {
 	protected int programHandle;
 	protected int vertexShaderHandle;
 	protected int fragmentShaderHandle;
-	protected Camera camera;
-	protected FractalStateManager stateManager;
+	protected final Camera camera;
+	protected final FractalStateManager stateManager;
 	
 	public static final int COORDS_PER_VERTEX = 3;
 	public static final int VERTEX_STRIDE = COORDS_PER_VERTEX * 4;

@@ -21,12 +21,12 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 	private FractalRenderer fractalRenderer;
 	private CubeRenderer cubeRenderer;
 	private TextureRenderer textureRenderer;
-	private Camera camera;
-	private FractalStateManager stateManager;
+	private final Camera camera;
+	private final FractalStateManager stateManager;
 	private boolean accumulatePoints = false;
 	private boolean editMode = false;
 	private boolean renderThumbnail = false;
-	private MessagePasser passer;
+	private final MessagePasser passer;
 	private long lastCameraPosition;
 	private long newCameraPosition;
 	private float minDist = 100;

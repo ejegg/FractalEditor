@@ -15,9 +15,9 @@ public class MotionEventHandler implements RotationGestureSubscriber{
 	private float mPreviousY;
 	private boolean touched;
 	private boolean dragging;
-	private GestureDetector mGestureDetector;
-	private ScaleGestureDetector mScaleDetector;
-	private RotationGestureListener mRotationListener;
+	private final GestureDetector mGestureDetector;
+	private final ScaleGestureDetector mScaleDetector;
+	private final RotationGestureListener mRotationListener;
 	private final float flingScaleFactor = 0.001f;
 	
 	private List<MotionEventSubscriber> subscribers = new ArrayList<MotionEventSubscriber>();

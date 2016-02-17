@@ -34,7 +34,7 @@ public class MessagePasser {
 		//Log.d("MessagePasser", "Got message of type " + type + ", value " + value);
 		List<WeakReference<MessageListener>> list = listeners.get(type);
 		if (list == null) return;
-		int size = list.size();
+		final int size = list.size();
 		if (list == null || size == 0) {
 			return;
 		}

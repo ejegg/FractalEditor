@@ -17,11 +17,11 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
 
     private final Random r = new Random();
     private ProgressListener progressListener;
-    private ResultListener resultListener;
+    private final ResultListener resultListener;
     private static final int DISCARD_COUNT = 10;
     private static SoftReference<float[]> pointsRef;
     private static SoftReference<ByteBuffer> bytesRef;
-    private float[] boundingBox = new float[6];
+    private final float[] boundingBox = new float[6];
     
     public FractalCalculatorTask(ProgressListener progressListener, ResultListener resultListener) {
     	this.progressListener  = progressListener;

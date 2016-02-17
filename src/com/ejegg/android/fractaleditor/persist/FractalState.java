@@ -6,8 +6,8 @@ import com.ejegg.android.fractaleditor.spatial.Vec;
 import android.opengl.Matrix;
 
 public class FractalState {
-	private int deviceId; //ID local to device
-	private int sharedId; //ID on shared site
+	private int deviceId; //ID local to device (null for unsaved)
+	private int sharedId; //ID on shared site (null if never uploaded)
 	private String name;
 	private int selectedTransform = NO_CUBE_SELECTED;
 	private float[][] transforms;

@@ -25,7 +25,7 @@ public class Camera {
 	private int width;
 	private int height;
 	private long lastMoveId = 0;
-	private MessagePasser messagePasser;
+	private final MessagePasser messagePasser;
 	
 	public Camera(MessagePasser passer) {
 		this.messagePasser= passer; 

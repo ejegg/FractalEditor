@@ -8,14 +8,14 @@ import android.util.Log;
 
 public class FractalRenderer extends GlRenderer {
 		
-	private int mvpMatrixHandle;
-	private int colorHandle;
-	private int fadeHandle;
-	private int minDistHandle;
-	private int distFacHandle;
-	private int positionHandle;
-	private int maxPoints = 0;
-	private float color[] = { 0.35f, 1.0f, 0.3f, 1.0f };
+	private final int mvpMatrixHandle;
+	private final int colorHandle;
+	private final int fadeHandle;
+	private final int minDistHandle;
+	private final int distFacHandle;
+	private final int positionHandle;
+	private final int maxPoints;
+	private final float color[] = { 0.35f, 1.0f, 0.3f, 1.0f };
     
     public FractalRenderer(Camera camera, FractalStateManager stateManager) {
     	super(camera, stateManager);

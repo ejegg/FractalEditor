@@ -9,8 +9,8 @@ import com.ejegg.android.fractaleditor.spatial.Camera;
 
 public class RenderModeManager implements MessagePasser.MessageListener{
 
-	private FractalStateManager stateManager;
-	private FractalEditView view;
+	private final FractalStateManager stateManager;
+	private final FractalEditView view;
 	private boolean cameraMoving;
 	private boolean screenTouched = false;
         

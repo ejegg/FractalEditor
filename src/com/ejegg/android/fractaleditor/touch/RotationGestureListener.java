@@ -12,7 +12,7 @@ public class RotationGestureListener {
     private float fX, fY, sX, sY, focalX, focalY;
     private int ptrID1, ptrID2;
     private boolean discardedFirst = false;
-    private List<RotationGestureSubscriber> subscribers = new ArrayList<RotationGestureSubscriber>();
+    private final List<RotationGestureSubscriber> subscribers = new ArrayList<RotationGestureSubscriber>();
     
     public RotationGestureListener(){
         ptrID1 = INVALID_POINTER_ID;
