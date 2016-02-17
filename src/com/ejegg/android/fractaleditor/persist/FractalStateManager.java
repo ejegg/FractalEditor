@@ -1,5 +1,7 @@
 package com.ejegg.android.fractaleditor.persist;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -12,11 +14,14 @@ import com.ejegg.android.fractaleditor.FractalCalculatorTask;
 import com.ejegg.android.fractaleditor.MessagePasser;
 import com.ejegg.android.fractaleditor.FractalCalculatorTask.ResultListener;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.render.MainRenderer;
 import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -123,32 +128,52 @@ public class FractalStateManager implements ResultListener {
 		stateChanged();
 	}
 
-	protected class Saver extends AsyncTask<String, Integer, Boolean> {
+	protected class SaveSpec {
+		public String name;
+		public MainRenderer renderer;
+
+		public SaveSpec(String name, MainRenderer renderer) {
+			this.name = name;
+			this.renderer = renderer;
+		}
+	}
+
+	protected class Saver extends AsyncTask<SaveSpec, Integer, Boolean> {
 
 		private ContentResolver contentResolver;
 		private URL url;
+		private File saveDir;
 
-		public Saver(ContentResolver contentResolver) {
+		public Saver(ContentResolver contentResolver, File saveDir) {
 			this.contentResolver = contentResolver;
+			this.saveDir = saveDir;
 		}
 
-		public Saver(ContentResolver contentResolver, String url) throws MalformedURLException {
-			this(contentResolver);
+		public Saver(ContentResolver contentResolver, File saveDir, String url) throws MalformedURLException {
+			this(contentResolver, saveDir);
 			this.url = new URL(url);
 		}
 
 		@Override
-		protected Boolean doInBackground(String... params) {
-			String saveName = params[0];
+		protected Boolean doInBackground(SaveSpec... params) {
+			String saveName = params[0].name;
+			Bitmap thumbnail = params[0].renderer.getThumbnail();
+
 			String transforms = State.getSerializedTransforms();
-			
+			FileOutputStream thumbStream = null;
+
 			try {
 				Log.d("Saver", saveName);
+				File tempFile = File.createTempFile("frac_", ".png", saveDir);
+				thumbStream = new FileOutputStream(tempFile);
+				thumbnail.compress(CompressFormat.PNG, 100, thumbStream);
+
 				ContentValues val = new ContentValues();
 				val.put(FractalStateProvider.Items.NAME, saveName);
 				val.put(FractalStateProvider.Items.TRANSFORM_COUNT, State.getNumTransforms());
 				val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, transforms);
 				val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());
+				val.put(FractalStateProvider.Items.THUMBNAIL, tempFile.getAbsolutePath());
 				contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
 				
 				if (url != null) {
@@ -197,12 +222,12 @@ public class FractalStateManager implements ResultListener {
 	    }
 	}
 	
-	public void save(ContentResolver contentResolver, String saveName) {
-		new Saver(contentResolver).execute(saveName);
+	public void save(ContentResolver contentResolver, String saveName, File saveDir, MainRenderer renderer) {
+		new Saver(contentResolver, saveDir).execute(new SaveSpec(saveName, renderer));
 	}
 
-	public void save(ContentResolver contentResolver, String saveName, String url) throws MalformedURLException {
-		new Saver(contentResolver, url).execute(saveName);
+	public void save(ContentResolver contentResolver, String saveName, File saveDir, MainRenderer renderer, String url) throws MalformedURLException {
+		new Saver(contentResolver, saveDir, url).execute(new SaveSpec(saveName, renderer));
 	}
 
 	public void setCalculationListener(FractalCalculatorTask.ProgressListener calculationListener) {

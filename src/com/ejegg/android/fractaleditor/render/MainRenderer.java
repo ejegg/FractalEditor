@@ -1,5 +1,7 @@
 package com.ejegg.android.fractaleditor.render;
 
+import java.nio.IntBuffer;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -7,8 +9,8 @@ import com.ejegg.android.fractaleditor.MessagePasser;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 import com.ejegg.android.fractaleditor.persist.FractalStateManager;
 import com.ejegg.android.fractaleditor.spatial.Camera;
-import com.ejegg.android.fractaleditor.spatial.Vec;
 
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -23,11 +25,13 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 	private FractalStateManager stateManager;
 	private boolean accumulatePoints = false;
 	private boolean editMode = false;
+	private boolean renderThumbnail = false;
 	private MessagePasser passer;
 	private long lastCameraPosition;
 	private long newCameraPosition;
 	private float minDist = 100;
 	private float maxDist = -100;
+	private Bitmap thumbnail;
 	
 	public MainRenderer(Camera camera, FractalStateManager stateManager, MessagePasser passer) {
 		this.camera = camera;
@@ -58,7 +62,10 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 			}
 			lastCameraPosition = newCameraPosition;
 		}
-			
+		if (renderThumbnail) {
+			createBitmap();
+			renderThumbnail = false;
+		}
 		if (camera.isMoving()) {
 			camera.spinStep();
 		} 
@@ -110,6 +117,9 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 					Log.d("MainRenderer", String.format("MinDist is %f, MaxDist is %f", minDist, maxDist));
 					calculateMinMaxDist();
 				}
+				if (stateManager.getBufferIndex() == 1) {
+					renderThumbnail = true;
+				}
 				break;
 			case ACCUMULATION_MODE_CHANGED:
 				accumulatePoints = accumulatePoints || value;
@@ -150,5 +160,36 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 			minDist = Math.min(minDist, dist);
 			maxDist = Math.max(maxDist, dist);
 		}
+	}
+
+	public Bitmap getThumbnail() {
+		return thumbnail;
+	}
+
+	private void createBitmap() {
+		int width = camera.getWidth();
+		int height = camera.getHeight();
+		Log.d("MainRenderer", String.format("Creating bitmap, width=%s, height=%s", width, height));
+		int b[]=new int[width*height];
+		int bt[]=new int[width*height];
+		IntBuffer ib = IntBuffer.wrap(b);
+		Log.d("MainRenderer", "Created buffers");
+		ib.position(0);
+		GLES20.glReadPixels(0, 0, width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, ib);
+		Log.d("MainRenderer", "did glReadPixels");
+		for(int i=0, k=0; i<height; i++, k++) {
+			// OpenGL bitmap is incompatible with Android bitmap
+			// and so, some correction is needed.
+			for(int j=0; j<width; j++) {
+				int pix=b[i*width+j];
+				int pb=(pix>>16)&0xff;
+				int pr=(pix<<16)&0x00ff0000;
+				int pix1=(pix&0xff00ff00) | pr | pb;
+				bt[(height-k-1)*width+j]=pix1;
+			}
+		}
+		Log.d("MainRenderer", "Transformed buffer to android format");
+		thumbnail = Bitmap.createBitmap(bt, width, height, Bitmap.Config.ARGB_8888);
+		Log.d("MainRenderer", "Created bitmap");
 	}
 }

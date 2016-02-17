@@ -1,5 +1,6 @@
 package com.ejegg.android.fractaleditor;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 
@@ -19,6 +20,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources.NotFoundException;
+import android.graphics.Bitmap;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +40,8 @@ public class FractalEditActivity extends Activity implements
 	private FractalStateManager stateManager;
 	private MessagePasser passer;
 	private RenderModeManager renderManager;
-	private FractalEditView view;	
+	private FractalEditView view;
+	private MainRenderer mainRenderer;
 	private static final int LOAD_REQUEST = 1;
 
 	@Override
@@ -60,7 +63,7 @@ public class FractalEditActivity extends Activity implements
 
 		Camera camera = appContext.getCamera();
 
-		MainRenderer mainRenderer = new MainRenderer(camera, stateManager, passer);
+		mainRenderer = new MainRenderer(camera, stateManager, passer);
 
 		view = (FractalEditView) findViewById(R.id.fractalCanvas);
 		view.setRenderer(mainRenderer);
@@ -199,17 +202,18 @@ public class FractalEditActivity extends Activity implements
 		EditText t = (EditText) ((AlertDialog) dialog).findViewById(R.id.save_name_entry);
 		CheckBox cb = (CheckBox) ((AlertDialog) dialog).findViewById(R.id.upload_checkbox);
 		String name = t.getText().toString();
-		
+		File saveDir = getApplicationContext().getFilesDir();
+
 		if (cb.isChecked()) {
 			try {
-				stateManager.save(getContentResolver(), name, getResources().getString(R.string.upload_url));
+				stateManager.save(getContentResolver(), name, saveDir, mainRenderer, getResources().getString(R.string.upload_url));
 			} catch (MalformedURLException e) {
 				Toast.makeText( this, "Upload failed - Malformed URL", Toast.LENGTH_SHORT).show();
 			} catch (NotFoundException e) {
 				Toast.makeText( this, "Upload failed - URL not found", Toast.LENGTH_SHORT).show();
 			}
 		} else {
-			stateManager.save(getContentResolver(), name);
+			stateManager.save(getContentResolver(), name, saveDir, mainRenderer);
 		}
 	}
 
