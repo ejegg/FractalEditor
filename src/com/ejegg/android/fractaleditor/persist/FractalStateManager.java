@@ -44,7 +44,7 @@ public class FractalStateManager implements ResultListener {
 	private final MessagePasser messagePasser;
 	private FractalCalculatorTask.ProgressListener calculationListener;
 	private FractalState lastState = null;
-    private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid",
+    private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid", "",
     											  4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
     												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " + 
@@ -118,6 +118,7 @@ public class FractalStateManager implements ResultListener {
 				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
 				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.SHARED_ID)),
 				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.NAME)),
+				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.THUMBNAIL)),
 				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.TRANSFORM_COUNT)),
 				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
 				);

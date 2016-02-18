@@ -6,21 +6,23 @@ import com.ejegg.android.fractaleditor.spatial.Vec;
 import android.opengl.Matrix;
 
 public class FractalState {
-	private int deviceId; //ID local to device (null for unsaved)
-	private int sharedId; //ID on shared site (null if never uploaded)
+	private int deviceId; //ID local to device (0 for unsaved)
+	private int sharedId; //ID on shared site (0 if never uploaded)
 	private String name;
+	private String thumbnailPath;
 	private int selectedTransform = NO_CUBE_SELECTED;
 	private float[][] transforms;
 	private final static float[][] axes = {{ 1, 0, 0, 1}, {0, 1, 0, 1}, {0, 0, 1, 1}};
 	
 	public static final int NO_CUBE_SELECTED = -1;
 	
-	public FractalState(int deviceId, int sharedId, String name, int numTransforms, float[][] transforms) {
+	public FractalState(int deviceId, int sharedId, String name, String thumbnailPath, int numTransforms, float[][] transforms) {
 		this.transforms = new float[numTransforms][16];
 		
 		this.deviceId = deviceId;
 		this.sharedId = sharedId;
 		this.name = name;
+		this.thumbnailPath = thumbnailPath;
 		
 		if (transforms != null) {
 			for (int i = 0; i < numTransforms; i++) {
@@ -30,13 +32,13 @@ public class FractalState {
 	}
 	
 	public FractalState clone() {
-		FractalState state = new FractalState(getDeviceId(), getSharedId(), getName(), getNumTransforms(), transforms);
+		FractalState state = new FractalState(getDeviceId(), getSharedId(), getName(), getThumbnailPath(), getNumTransforms(), transforms);
 		state.setSelectedTransform(selectedTransform);
 		return state;
 	}
 	
-	public FractalState(int deviceId, int sharedId, String name, int numTransforms, String serializedTransforms) {
-		this(deviceId, sharedId, name, numTransforms, (float[][]) null);
+	public FractalState(int deviceId, int sharedId, String name, String thumbnailPath, int numTransforms, String serializedTransforms) {
+		this(deviceId, sharedId, name, thumbnailPath, numTransforms, (float[][]) null);
 		
 		String[] splitTransforms = serializedTransforms.split(" ");
 		transforms = new float[numTransforms][16];
@@ -246,5 +248,13 @@ public class FractalState {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getThumbnailPath() {
+		return thumbnailPath;
+	}
+
+	public void setThumbnailPath(String thumbnailPath) {
+		this.thumbnailPath = thumbnailPath;
 	}
 }
