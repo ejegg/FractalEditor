@@ -6,6 +6,8 @@ import java.util.Arrays;
 
 import com.ejegg.android.fractaleditor.LoadActivity;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.persist.FractalSaver;
+import com.ejegg.android.fractaleditor.persist.FractalState;
 import com.ejegg.android.fractaleditor.persist.FractalStateManager;
 import com.ejegg.android.fractaleditor.render.MainRenderer;
 import com.ejegg.android.fractaleditor.spatial.Camera;
@@ -20,7 +22,6 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources.NotFoundException;
-import android.graphics.Bitmap;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -203,17 +204,26 @@ public class FractalEditActivity extends Activity implements
 		CheckBox cb = (CheckBox) ((AlertDialog) dialog).findViewById(R.id.upload_checkbox);
 		String name = t.getText().toString();
 		File saveDir = getApplicationContext().getFilesDir();
+		String uploadUrl = null;
+		FractalState state = stateManager.getState();
+		state.setName(name);
 
-		if (cb.isChecked()) {
-			try {
-				stateManager.save(getContentResolver(), name, saveDir, mainRenderer, getResources().getString(R.string.upload_url));
-			} catch (MalformedURLException e) {
-				Toast.makeText( this, "Upload failed - Malformed URL", Toast.LENGTH_SHORT).show();
-			} catch (NotFoundException e) {
-				Toast.makeText( this, "Upload failed - URL not found", Toast.LENGTH_SHORT).show();
+		try {
+			if (cb.isChecked()) {
+				uploadUrl = getResources().getString(R.string.upload_url);
 			}
-		} else {
-			stateManager.save(getContentResolver(), name, saveDir, mainRenderer);
+			FractalSaver saver = new FractalSaver(
+					getContentResolver(),
+					passer,
+					mainRenderer,
+					saveDir,
+					uploadUrl
+			);
+			saver.execute(state);
+		} catch (MalformedURLException e) {
+			Toast.makeText( this, "Upload failed - Malformed URL", Toast.LENGTH_SHORT).show();
+		} catch (NotFoundException e) {
+			Toast.makeText( this, "Upload failed - URL not found", Toast.LENGTH_SHORT).show();
 		}
 	}
 
