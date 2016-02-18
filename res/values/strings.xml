@@ -17,7 +17,7 @@
     <string name="title_activity_save">Save Fractal</string>
     <string name="title_activity_delete">Delete Fractal</string>
     <string name="save_extra_key">SAVE_NAME</string>
-    <string name="upload_url">http://fractaleditor.ejegg.com/fractal/save</string>
+    <string name="upload_url">https://fractaleditor.com/fractal/save</string>
     <string name="upload_prompt">Also Upload and Share</string>
     <string name="delete_prompt">Really Delete \"%s\"?</string>
     
