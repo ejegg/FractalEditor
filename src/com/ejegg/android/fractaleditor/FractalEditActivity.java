@@ -1,7 +1,6 @@
 package com.ejegg.android.fractaleditor;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.util.Arrays;
 
 import com.ejegg.android.fractaleditor.LoadActivity;
@@ -56,7 +55,8 @@ public class FractalEditActivity extends Activity implements
 		passer.Subscribe(this, MessageType.EDIT_MODE_CHANGED,
 				MessageType.SCALE_MODE_CHANGED,
 				MessageType.UNDO_ENABLED_CHANGED,
-				MessageType.STATE_SAVED);
+				MessageType.STATE_SAVED,
+				MessageType.STATE_UPLOADED);
 
 		stateManager = appContext.getStateManager();
 		stateManager.setCalculationListener(this);
@@ -220,8 +220,6 @@ public class FractalEditActivity extends Activity implements
 					uploadUrl
 			);
 			saver.execute(state);
-		} catch (MalformedURLException e) {
-			Toast.makeText( this, "Upload failed - Malformed URL", Toast.LENGTH_SHORT).show();
 		} catch (NotFoundException e) {
 			Toast.makeText( this, "Upload failed - URL not found", Toast.LENGTH_SHORT).show();
 		}
@@ -232,6 +230,9 @@ public class FractalEditActivity extends Activity implements
 		switch(type) {
 		case STATE_SAVED:
 			Toast.makeText(this, value ? "Fractal saved" : "Error saving fractal", Toast.LENGTH_LONG).show();
+			break;
+		case STATE_UPLOADED:
+			Toast.makeText(this, value ? "Fractal uploaded" : "Error uploading fractal", Toast.LENGTH_LONG).show();
 			break;
 		default:
 			setButtonStates();

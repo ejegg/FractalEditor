@@ -24,6 +24,7 @@ public class MessagePasser {
 		ACCUMULATION_MODE_CHANGED,
 		CAMERA_MOVED, 
 		STATE_SAVED,
+		STATE_UPLOADED,
 	}
 	
 	public interface MessageListener {
