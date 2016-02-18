@@ -33,7 +33,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class FractalEditActivity extends Activity implements
-		FractalCalculatorTask.ProgressListener, OnClickListener,
+		ProgressListener, OnClickListener,
 		DialogInterface.OnClickListener, MessagePasser.MessageListener {
 
 	private ProgressBar progressBar;
@@ -108,7 +108,7 @@ public class FractalEditActivity extends Activity implements
 		return true;
 	}
 
-	@Override
+	// ProgressListener callbacks
 	public void started() {
 		progressBar.setVisibility(View.VISIBLE);
 	}
@@ -118,7 +118,6 @@ public class FractalEditActivity extends Activity implements
 		this.progressBar.setProgress(progress);
 	}
 
-	@Override
 	public void finished() {
 		progressBar.setVisibility(View.GONE);
 	}

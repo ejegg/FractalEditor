@@ -151,12 +151,6 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
             this.progressListener = listener;
     }
     
-    public interface ProgressListener {
-            void started();
-            void progressed(int progress);
-            void finished();
-    }
-    
     public interface ResultListener {
             void finished(FloatBuffer points, float[] boundingBox);
     }

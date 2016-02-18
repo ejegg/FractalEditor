@@ -7,6 +7,7 @@ import com.ejegg.android.fractaleditor.FractalCalculatorTask;
 import com.ejegg.android.fractaleditor.MessagePasser;
 import com.ejegg.android.fractaleditor.FractalCalculatorTask.ResultListener;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
+import com.ejegg.android.fractaleditor.ProgressListener;
 import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 
 import android.content.ContentResolver;
@@ -29,7 +30,7 @@ public class FractalStateManager implements ResultListener {
 	private int bufferIndex = 0;
 	
 	private final MessagePasser messagePasser;
-	private FractalCalculatorTask.ProgressListener calculationListener;
+	private ProgressListener calculationListener;
 	private FractalState lastState = null;
     private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid", "",
     											  4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
@@ -116,7 +117,7 @@ public class FractalStateManager implements ResultListener {
 		stateChanged();
 	}
 
-	public void setCalculationListener(FractalCalculatorTask.ProgressListener calculationListener) {
+	public void setCalculationListener(ProgressListener calculationListener) {
 		calculationRepeatCount = 0; //reset redraw count on orientation change 
 		this.calculationListener = calculationListener;
 		if (calculator != null && !continuousCalculation) {
