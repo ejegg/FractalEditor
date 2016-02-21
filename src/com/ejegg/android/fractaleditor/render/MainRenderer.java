@@ -18,6 +18,8 @@ import android.util.Log;
 
 public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.MessageListener{
 
+	private static final int THUMBNAIL_MAX_WIDTH = 250;
+	private static final int THUMBNAIL_MAX_HEIGHT = 300;
 	private FractalRenderer fractalRenderer;
 	private CubeRenderer cubeRenderer;
 	private TextureRenderer textureRenderer;
@@ -187,7 +189,7 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		Log.d("MainRenderer", "Grabbed thumbnail pixels");
 	}
 
-	public Bitmap getThumbnail() {
+	public Bitmap getRender() {
 		// Cribbed from http://stackoverflow.com/questions/20606295/when-using-gles20-glreadpixels-on-android-the-data-returned-by-it-is-not-exactl
 		Log.d("MainRenderer", String.format("Creating bitmap, width=%s, height=%s", thumbWidth, thumbHeight));
 		int bt[] = new int[thumbWidth * thumbHeight];
@@ -206,5 +208,22 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		}
 		Log.d("MainRenderer", "Transformed buffer to android format");
 		return Bitmap.createBitmap(bt, thumbWidth, thumbHeight, Bitmap.Config.ARGB_8888);
+	}
+
+	public Bitmap getThumbnail() {
+		Bitmap fullSize = this.getRender();
+		int width = fullSize.getWidth();
+		int height = fullSize.getHeight();
+		float widthRatio = width / THUMBNAIL_MAX_WIDTH;
+		float heightRatio = height / THUMBNAIL_MAX_HEIGHT;
+		float ratio = Math.max(widthRatio, heightRatio);
+		Bitmap thumb = Bitmap.createScaledBitmap(
+				fullSize,
+				(int) (width / ratio),
+				(int) (height / ratio),
+				false
+		);
+		fullSize.recycle();
+		return thumb;
 	}
 }
