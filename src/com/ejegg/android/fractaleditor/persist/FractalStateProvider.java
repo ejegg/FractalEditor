@@ -1,11 +1,10 @@
 package com.ejegg.android.fractaleditor.persist;
 
-import java.util.HashMap;
-
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,6 +12,13 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 import android.provider.BaseColumns;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import com.ejegg.android.fractaleditor.R;
 
 public class FractalStateProvider extends ContentProvider {
@@ -91,46 +97,86 @@ public class FractalStateProvider extends ContentProvider {
 
 	protected static class FractalDatabaseHelper extends SQLiteOpenHelper {
 
-		private HashMap<String, String> demoFractals;
-		
-	    private static final String FRACTAL_TABLE_CREATE =
-	                "CREATE TABLE " + TABLE_NAME + " (" +
-	                Items._ID + " INTEGER PRIMARY KEY, " +
-	                Items.SHARED_ID + " INTEGER, " +
-	                Items.NAME + " TEXT UNIQUE, " +
-	                Items.TRANSFORM_COUNT + " INTEGER, " +
-	                Items.SERIALIZED_TRANSFORMS + " TEXT, " +
-	                Items.THUMBNAIL + " BLOB, " + 
-	                Items.LAST_UPDATED + " INTEGER);";
-	    
-	    public FractalDatabaseHelper(Context context) {
-	    	super(context, DATABASE_NAME, null, DATABASE_VERSION);
-	    	demoFractals = new HashMap<String, String>();
-	    	Resources r = context.getResources();
-	    	demoFractals.put(r.getString(R.string.sierpinski_name), r.getString(R.string.sierpinski_transforms));
-	    	demoFractals.put(r.getString(R.string.menger_name), r.getString(R.string.menger_transforms));
-	    	demoFractals.put(r.getString(R.string.spleenwort_name), r.getString(R.string.spleenwort_transforms));
-	    }
-	    
-	    @Override
-	    public void onOpen(SQLiteDatabase db) {
-	    	if (db.isReadOnly()) return;
-	    }
+		private String[][] demoFractals;
+		private AssetManager manager;
+		private File saveDir;
+
+		private static final String FRACTAL_TABLE_CREATE =
+				"CREATE TABLE " + TABLE_NAME + " (" +
+						Items._ID + " INTEGER PRIMARY KEY, " +
+						Items.SHARED_ID + " INTEGER, " +
+						Items.NAME + " TEXT UNIQUE, " +
+						Items.TRANSFORM_COUNT + " INTEGER, " +
+						Items.SERIALIZED_TRANSFORMS + " TEXT, " +
+						Items.THUMBNAIL + " TEXT, " +
+						Items.LAST_UPDATED + " INTEGER);";
+
+		public FractalDatabaseHelper(Context context) {
+			super(context, DATABASE_NAME, null, DATABASE_VERSION);
+			manager = context.getAssets();
+			saveDir = context.getFilesDir();
+			Resources r = context.getResources();
+			demoFractals = new String[][]{
+				{
+					r.getString(R.string.sierpinski_name),
+					r.getString(R.string.sierpinski_transforms),
+					"sierpinski.png"
+				},
+				{
+					r.getString(R.string.maple_name),
+					r.getString(R.string.maple_transforms),
+					"maple.png"
+				},
+				{
+					r.getString(R.string.spleenwort_name),
+					r.getString(R.string.spleenwort_transforms),
+					"spleenwort.png"
+				},
+				{
+					r.getString(R.string.menger_name),
+					r.getString(R.string.menger_transforms),
+					"menger.png"
+				},
+			};
+		}
+
+		@Override
+		public void onOpen(SQLiteDatabase db) {
+			if (db.isReadOnly()) return;
+		}
 	    
 		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(FRACTAL_TABLE_CREATE);
-			for (String name : demoFractals.keySet()) {
-				insertFractal(db, name, demoFractals.get(name));
+			for (int i = 0; i < demoFractals.length; i++) {
+				insertFractal(db, i+1,  demoFractals[i][0], demoFractals[i][1], demoFractals[i][2]);
 			}
 		}
 		
-		private void insertFractal(SQLiteDatabase db, String name, String transforms) {
+		private void insertFractal(SQLiteDatabase db, int sharedId, String name, String transforms, String thumbnail) {
 			Log.d("Provider", "insertFractal");
 			int numT = transforms.split(" ").length / 16;
-			db.execSQL(String.format("INSERT OR IGNORE INTO %s (%s, %s, %s, %s) VALUES(?, ?, ?, ?)", 
-					TABLE_NAME, Items.NAME, Items.TRANSFORM_COUNT, Items.SERIALIZED_TRANSFORMS, Items.LAST_UPDATED),
-					new Object[] { name, numT, transforms, System.currentTimeMillis()});
+			db.execSQL(String.format("INSERT OR IGNORE INTO %s (%s, %s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?, ?)",
+					TABLE_NAME, Items.SHARED_ID, Items.NAME, Items.TRANSFORM_COUNT,
+					Items.SERIALIZED_TRANSFORMS, Items.THUMBNAIL, Items.LAST_UPDATED),
+					new Object[] { sharedId, name, numT, transforms, thumbnail, System.currentTimeMillis()});
+			try {
+				String thumbPath = saveDir.getAbsolutePath() + "/" + thumbnail;
+				InputStream in = manager.open(thumbnail);
+				OutputStream out = new FileOutputStream(thumbPath);
+				byte[] buffer = new byte[4096];
+				int read;
+				while((read = in.read(buffer)) != -1) {
+					out.write(buffer, 0, read);
+				}
+				in.close();
+				in = null;
+				out.flush();
+				out.close();
+				out = null;
+			} catch (IOException e) {
+				Log.e("Provider", "Could not write thumbnail: " + e.getMessage());
+			}
 		}
 		
 		@Override
