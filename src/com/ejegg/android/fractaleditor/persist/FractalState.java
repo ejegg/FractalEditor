@@ -37,10 +37,11 @@ public class FractalState {
 		return state;
 	}
 	
-	public FractalState(int deviceId, int sharedId, String name, String thumbnailPath, int numTransforms, String serializedTransforms) {
-		this(deviceId, sharedId, name, thumbnailPath, numTransforms, (float[][]) null);
+	public FractalState(int deviceId, int sharedId, String name, String thumbnailPath, String serializedTransforms) {
+		this(deviceId, sharedId, name, thumbnailPath, 1, (float[][]) null);
 		
 		String[] splitTransforms = serializedTransforms.split(" ");
+		int numTransforms = splitTransforms.length / 16;
 		transforms = new float[numTransforms][16];
 		for (int t = 0; t< numTransforms; t++) {
 			for (int u = 0; u < 16; u++) {

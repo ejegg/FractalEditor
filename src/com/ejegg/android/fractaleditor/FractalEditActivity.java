@@ -60,6 +60,11 @@ public class FractalEditActivity extends Activity implements
 
 		stateManager = appContext.getStateManager();
 		stateManager.setCalculationListener(this);
+
+		Uri intentData = getIntent().getData();
+		if (intentData != null) {
+			stateManager.loadStateFromUri(intentData);
+		}
 		setButtonStates();
 
 		Camera camera = appContext.getCamera();

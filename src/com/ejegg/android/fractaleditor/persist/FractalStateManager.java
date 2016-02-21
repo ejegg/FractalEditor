@@ -13,6 +13,7 @@ import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.util.Log;
 
 public class FractalStateManager implements ResultListener {
 	private int numPoints = 200000;
@@ -33,10 +34,10 @@ public class FractalStateManager implements ResultListener {
 	private ProgressListener calculationListener;
 	private FractalState lastState = null;
     private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid", "",
-    											  4, "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
-    												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
-    												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " + 
-    												 "0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
+													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
+													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
+													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " +
+													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
 	private float[] boundingBox;
 
 	public FractalStateManager(MessagePasser messagePasser) {
@@ -103,13 +104,12 @@ public class FractalStateManager implements ResultListener {
 		final Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
 		cursor.moveToFirst();
 		State = new FractalState(
-				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
-				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.SHARED_ID)),
-				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.NAME)),
-				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.THUMBNAIL)),
-				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.TRANSFORM_COUNT)),
-				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
-				);
+			cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
+			cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.SHARED_ID)),
+			cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.NAME)),
+			cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.THUMBNAIL)),
+			cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
+		);
 
 		cursor.close();
 		undoStack.clear();
@@ -285,5 +285,21 @@ public class FractalStateManager implements ResultListener {
 
 	public float[] getBoundingBox() {
 		return boundingBox;
+	}
+
+	public void loadStateFromUri(Uri intentData) {
+		String transforms = intentData.getQueryParameter("transforms");
+		Log.d("StateManager", "transforms: " + transforms);
+		State = new FractalState(
+			-1,
+			Integer.parseInt(intentData.getQueryParameter("id")),
+			intentData.getQueryParameter("name"),
+			"",
+			intentData.getQueryParameter("transforms")
+		);
+
+		undoStack.clear();
+		sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
+		stateChanged();
 	}
 }
