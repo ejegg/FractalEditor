@@ -53,6 +53,7 @@ public class FractalSaver extends AsyncTask<FractalState, Integer, Boolean> {
 
 			ContentValues val = new ContentValues();
 			val.put(FractalStateProvider.Items.NAME, saveName);
+			val.put(FractalStateProvider.Items.SHARED_ID, state.getSharedId());
 			val.put(FractalStateProvider.Items.TRANSFORM_COUNT, state.getNumTransforms());
 			val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, state.getSerializedTransforms());
 			val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());

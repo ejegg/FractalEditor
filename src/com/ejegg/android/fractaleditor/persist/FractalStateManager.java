@@ -291,10 +291,10 @@ public class FractalStateManager implements ResultListener {
 		String transforms = intentData.getQueryParameter("transforms");
 		Log.d("StateManager", "transforms: " + transforms);
 		State = new FractalState(
-			-1,
+			0,
 			Integer.parseInt(intentData.getQueryParameter("id")),
 			intentData.getQueryParameter("name"),
-			"",
+			"https://fractaleditor.com/media/" + intentData.getQueryParameter("thumbnail"),
 			intentData.getQueryParameter("transforms")
 		);
 
