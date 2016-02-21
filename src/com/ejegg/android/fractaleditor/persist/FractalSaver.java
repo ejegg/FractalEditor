@@ -69,6 +69,7 @@ public class FractalSaver extends AsyncTask<FractalState, Integer, Boolean> {
 			Log.d("Saver", "Error saving: " + e.getMessage() + e.getStackTrace());
 			return false;
 		}
+		thumbnail.recycle();
 		return true;
 	}
 
