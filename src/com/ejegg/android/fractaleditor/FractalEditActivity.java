@@ -63,7 +63,13 @@ public class FractalEditActivity extends Activity implements
 
 		Uri intentData = getIntent().getData();
 		if (intentData != null) {
-			stateManager.loadStateFromUri(intentData);
+			if (intentData.getScheme().equals("content")) {
+				// locally saved fractal
+				stateManager.loadStateFromUri(getContentResolver(), intentData);
+			} else {
+				// web link opened in app
+				stateManager.loadStateFromUri(intentData);
+			}
 		}
 		setButtonStates();
 
@@ -89,7 +95,7 @@ public class FractalEditActivity extends Activity implements
 
 	@Override
 	protected void onResume() {
-		super.onPause();
+		super.onResume();
 		view.onResume();
 		renderManager.checkAccumulate();
 	}
@@ -134,7 +140,7 @@ public class FractalEditActivity extends Activity implements
 			stateManager.toggleEditMode();
 			break;
 		case R.id.loadButton:
-			Intent loadTntent = new Intent(this, LoadActivity.class);
+			Intent loadTntent = new Intent(this, GalleryActivity.class);
 			startActivityForResult(loadTntent, LOAD_REQUEST);
 			break;
 		case R.id.addButton:
@@ -153,6 +159,7 @@ public class FractalEditActivity extends Activity implements
 			Dialog d = new Dialog(this);
 			d.setContentView(R.layout.dialog_save);
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			// TODO: localize
 			builder.setTitle(R.string.title_activity_save)
 					.setView(
 							getLayoutInflater().inflate(R.layout.dialog_save,
@@ -181,21 +188,6 @@ public class FractalEditActivity extends Activity implements
 				&& stateManager.isUndoEnabled());
 	}
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		switch (requestCode) {
-		case LOAD_REQUEST:
-			if (resultCode != RESULT_OK) {
-				Toast.makeText(this, "No saved fractal loaded",
-						Toast.LENGTH_LONG).show();
-				return;
-			}
-			Uri savedFractalUri = data.getData();
-			stateManager.loadStateFromUri(getContentResolver(), savedFractalUri);
-			break;
-		}
-	}
-	
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
 		

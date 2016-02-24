@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/saved_fractal_name"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:textAppearance="?android:attr/textAppearanceMedium" 
-    android:padding="10dp">
-
-</TextView>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="${relativePackage}.${activityClass}" >
+	<ImageView
+	    android:id="@+id/saved_fractal_thumbnail"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="false"
+		android:layout_centerHorizontal="true"
+		android:scaleType="fitXY"
+		android:adjustViewBounds="true"
+		android:background="#000000" />
+	<TextView
+	    android:id="@+id/saved_fractal_name"
+	    android:layout_width="match_parent"
+	    android:layout_height="wrap_content"
+	    android:textAppearance="?android:attr/textAppearanceMedium" 
+	    android:padding="10dp"
+		android:layout_alignParentEnd="false"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentRight="false"
+		android:backgroundTint="#884e4e4e"
+		android:textColor="#ffffff">
+	
+	</TextView>
+</RelativeLayout>

@@ -22,5 +22,7 @@
     <string name="upload_url">https://fractaleditor.com/fractal/save</string>
     <string name="upload_prompt">Also Upload and Share</string>
     <string name="delete_prompt">Really Delete \"%s\"?</string>
-    
+    <string name="title_activity_gallery">GalleryActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>

@@ -156,12 +156,12 @@ public class FractalStateProvider extends ContentProvider {
 		private void insertFractal(SQLiteDatabase db, int sharedId, String name, String transforms, String thumbnail) {
 			Log.d("Provider", "insertFractal");
 			int numT = transforms.split(" ").length / 16;
+			String thumbPath = saveDir.getAbsolutePath() + "/" + thumbnail;
 			db.execSQL(String.format("INSERT OR IGNORE INTO %s (%s, %s, %s, %s, %s, %s) VALUES(?, ?, ?, ?, ?, ?)",
 					TABLE_NAME, Items.SHARED_ID, Items.NAME, Items.TRANSFORM_COUNT,
 					Items.SERIALIZED_TRANSFORMS, Items.THUMBNAIL, Items.LAST_UPDATED),
-					new Object[] { sharedId, name, numT, transforms, thumbnail, System.currentTimeMillis()});
+					new Object[] { sharedId, name, numT, transforms, thumbPath, System.currentTimeMillis()});
 			try {
-				String thumbPath = saveDir.getAbsolutePath() + "/" + thumbnail;
 				InputStream in = manager.open(thumbnail);
 				OutputStream out = new FileOutputStream(thumbPath);
 				byte[] buffer = new byte[4096];
@@ -176,6 +176,9 @@ public class FractalStateProvider extends ContentProvider {
 				out = null;
 			} catch (IOException e) {
 				Log.e("Provider", "Could not write thumbnail: " + e.getMessage());
+				if (e.getCause() != null) {
+					Log.e("Provider", "thumbnail error cause: " + e.getCause().getMessage());
+				}
 			}
 		}
 		

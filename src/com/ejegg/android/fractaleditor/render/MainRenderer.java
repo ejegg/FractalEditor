@@ -216,7 +216,7 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		int height = fullSize.getHeight();
 		float widthRatio = width / THUMBNAIL_MAX_WIDTH;
 		float heightRatio = height / THUMBNAIL_MAX_HEIGHT;
-		float ratio = Math.max(widthRatio, heightRatio);
+		float ratio = 2.0f;//Math.max(widthRatio, heightRatio);
 		Bitmap thumb = Bitmap.createScaledBitmap(
 				fullSize,
 				(int) (width / ratio),
