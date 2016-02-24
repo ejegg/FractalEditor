@@ -5,30 +5,28 @@
     android:versionName="1.0-a2" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    
+
     <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="18" />
+        android:minSdkVersion="11"
+        android:targetSdkVersion="23" />
 
     <application
+        android:name=".FractalEditor"
         android:allowBackup="true"
         android:icon="@drawable/launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" 
-        android:name="com.ejegg.android.fractaleditor.FractalEditor">
+        android:theme="@style/AppTheme" >
         <activity
-            android:name="com.ejegg.android.fractaleditor.FractalEditActivity"
+            android:name=".FractalEditActivity"
             android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
+                <data android:scheme="content"
+                    android:host="com.ejegg.android.fractaleditor.persist.FractalState" />
                 <data
                     android:scheme="fractaleditor"
                     android:host="fractal"
@@ -36,14 +34,25 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.ejegg.android.fractaleditor.LoadActivity"
+            android:name=".LoadActivity"
             android:label="@string/title_activity_load" >
         </activity>
 
         <provider
-            android:name="com.ejegg.android.fractaleditor.persist.FractalStateProvider"
+            android:name=".persist.FractalStateProvider"
             android:authorities="com.ejegg.android.fractaleditor.persist.FractalState" >
         </provider>
+
+        <activity
+            android:name=".GalleryActivity"
+            android:label="@string/app_name" >
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
