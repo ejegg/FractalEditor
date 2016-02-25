@@ -24,22 +24,20 @@ import android.widget.TextView;
 public class SavedFractalAdapter extends RecyclerView.Adapter<SavedFractalAdapter.SavedFractalViewHolder> {
 	private Cursor data;
 	private Activity context;
-	private int savedCount;
+	private int count = 0;
 
-	public SavedFractalAdapter(Activity context, Cursor data) {
+	public SavedFractalAdapter(Activity context) {
 		this.context = context;
-		this.data = data;
-		savedCount = data.getCount();
 	}
 
 	@Override
 	public int getItemCount() {
-		return savedCount + 1;
+		return count;
 	}
 
 	@Override
 	public void onBindViewHolder(SavedFractalViewHolder viewHolder, int i) {
-		if (i == savedCount) {
+		if (i == count - 1) {
 			viewHolder.id = -1;
 			viewHolder.thumbnailView.setImageDrawable(
 				context.getResources().getDrawable(R.drawable.ic_menu_add)
@@ -56,7 +54,7 @@ public class SavedFractalAdapter extends RecyclerView.Adapter<SavedFractalAdapte
 			Log.d("Adapter", String.format("%s thumb bitmap dimensions: %d width, %d height", name, thumbBitmap.getWidth(), thumbBitmap.getHeight()));
 			viewHolder.thumbnailView.setImageBitmap(thumbBitmap);
 		} else {
-			// do a thing with the remote path (or maybe we should download it as soon as we 
+			// do a thing with the remote path (or maybe we should download it as soon as we open it from the site? )
 		}
 	}
 
@@ -65,7 +63,13 @@ public class SavedFractalAdapter extends RecyclerView.Adapter<SavedFractalAdapte
 		View fractalView = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.saved_fractal, viewGroup, false);
 		return new SavedFractalViewHolder(fractalView);
 	}
-	
+
+	public void setData(Cursor data) {
+		this.data = data;
+		count = data.getCount() + 1; // Add one for the 'create new' button
+		notifyDataSetChanged();
+	}
+
 	public class SavedFractalViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 		protected ImageView thumbnailView;
 		protected TextView nameView;

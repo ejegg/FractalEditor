@@ -10,13 +10,13 @@
              android:layout_height="match_parent"
         android:visibility="gone" />
 
-    <TextView
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Loading"
-        android:id="@+id/loadingText"
+        android:id="@+id/gallery_progress"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:indeterminate="false" />
 
 </RelativeLayout>
