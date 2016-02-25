@@ -87,7 +87,7 @@ public class SavedFractalAdapter extends RecyclerView.Adapter<SavedFractalAdapte
 			Intent result = new Intent(
 				context, FractalEditActivity.class
 			);
-			if (id != 0) {
+			if (id > 0) {
 				result.setData(Uri.parse(FractalStateProvider.CONTENT_URI.toString() + "/" + id));
 			}
 			context.startActivity(result);

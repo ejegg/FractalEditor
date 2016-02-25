@@ -2,6 +2,7 @@
 <resources>
     <declare-styleable name="editMode" >
         <attr name="state_edit" format="boolean" />
+        <attr name="render_available" format="boolean" />
     </declare-styleable>
     <declare-styleable name="scaleMode" >
         <attr name="state_uniform_scale" format="boolean" />

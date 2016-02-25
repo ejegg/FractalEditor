@@ -33,11 +33,9 @@ public class FractalStateManager implements ResultListener {
 	private final MessagePasser messagePasser;
 	private ProgressListener calculationListener;
 	private FractalState lastState = null;
-    private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid", "",
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " +
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
+	private FractalState State = new FractalState(
+			0, 0, "New Fractal", "", ""
+	);
 	private float[] boundingBox;
 
 	public FractalStateManager(MessagePasser messagePasser) {
@@ -72,8 +70,8 @@ public class FractalStateManager implements ResultListener {
 		return editMode;
 	}
 	
-	public void toggleEditMode() {
-		editMode = !editMode;
+	public void setEditMode(Boolean mode) {
+		editMode = mode;
 		State.clearSelection();
 		sendMessage(MessagePasser.MessageType.EDIT_MODE_CHANGED, editMode);
 		if (editMode) {
@@ -101,22 +99,16 @@ public class FractalStateManager implements ResultListener {
 	}
 	
 	public void loadStateFromUri(ContentResolver contentResolver, Uri savedFractalUri) {
-		if (savedFractalUri.getPath().equals("/-1")) {
-			State = new FractalState(
-				0, 0, "New Fractal", "", ""
-			);
-		} else {
-			final Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
-			cursor.moveToFirst();
-			State = new FractalState(
-					cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
-					cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.SHARED_ID)),
-					cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.NAME)),
-					cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.THUMBNAIL)),
-					cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
-			);
-			cursor.close();
-		}
+		final Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
+		cursor.moveToFirst();
+		State = new FractalState(
+				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
+				cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items.SHARED_ID)),
+				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.NAME)),
+				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.THUMBNAIL)),
+				cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
+		);
+		cursor.close();
 
 		undoStack.clear();
 		sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);

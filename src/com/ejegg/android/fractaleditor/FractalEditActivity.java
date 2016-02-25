@@ -53,6 +53,7 @@ public class FractalEditActivity extends Activity implements
 		passer.Subscribe(this, MessageType.EDIT_MODE_CHANGED,
 				MessageType.SCALE_MODE_CHANGED,
 				MessageType.UNDO_ENABLED_CHANGED,
+				MessageType.STATE_CHANGED,
 				MessageType.STATE_SAVED,
 				MessageType.STATE_UPLOADED);
 
@@ -60,7 +61,10 @@ public class FractalEditActivity extends Activity implements
 		stateManager.setCalculationListener(this);
 
 		Uri intentData = getIntent().getData();
-		if (intentData != null) {
+		if (intentData == null) {
+			// new fractal, start in edit mode
+			stateManager.setEditMode(true);
+		} else {
 			if (intentData.getScheme().equals("content")) {
 				// locally saved fractal
 				stateManager.loadStateFromUri(getContentResolver(), intentData);
@@ -131,11 +135,21 @@ public class FractalEditActivity extends Activity implements
 		progressBar.setVisibility(View.GONE);
 	}
 
+	private boolean isRenderModeAvailable() {
+		return stateManager.getState().getNumTransforms() > 0;
+	}
+
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.modeButton:
-			stateManager.toggleEditMode();
+			if (stateManager.isEditMode()) {
+				if (isRenderModeAvailable()) {
+					stateManager.setEditMode(false);
+				}
+				return;
+			}
+			stateManager.setEditMode(true);
 			break;
 		case R.id.addButton:
 			stateManager.addTransform();
@@ -175,21 +189,23 @@ public class FractalEditActivity extends Activity implements
 
 	private void setButtonStates() {
 		boolean editMode = stateManager.isEditMode();
-		((EditButton) findViewById(R.id.modeButton)).setEditMode(editMode);
+		EditButton edit = (EditButton) findViewById(R.id.modeButton);
+		edit.setEditMode(editMode);
+		edit.setRenderAvailable(isRenderModeAvailable());
 		((ScaleModeButton) findViewById(R.id.scaleModeButton))
 				.setScaleMode(stateManager.isUniformScaleMode());
-		((Button) findViewById(R.id.undoButton)).setEnabled(editMode
+		findViewById(R.id.undoButton).setEnabled(editMode
 				&& stateManager.isUndoEnabled());
 	}
 
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
-		
+
 		if (which == DialogInterface.BUTTON_NEGATIVE) {
 			Toast.makeText(this, "Canceled", Toast.LENGTH_SHORT).show();
 			return;
 		}
-		
+
 		EditText t = (EditText) ((AlertDialog) dialog).findViewById(R.id.save_name_entry);
 		CheckBox cb = (CheckBox) ((AlertDialog) dialog).findViewById(R.id.upload_checkbox);
 		String name = t.getText().toString();
