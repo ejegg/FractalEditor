@@ -3,7 +3,6 @@ package com.ejegg.android.fractaleditor;
 import java.io.File;
 import java.util.Arrays;
 
-import com.ejegg.android.fractaleditor.LoadActivity;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 import com.ejegg.android.fractaleditor.persist.FractalSaver;
 import com.ejegg.android.fractaleditor.persist.FractalState;
@@ -42,7 +41,6 @@ public class FractalEditActivity extends Activity implements
 	private RenderModeManager renderManager;
 	private FractalEditView view;
 	private MainRenderer mainRenderer;
-	private static final int LOAD_REQUEST = 1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,9 +97,9 @@ public class FractalEditActivity extends Activity implements
 		view.onResume();
 		renderManager.checkAccumulate();
 	}
-	
+
 	private void setButtons() {
-		for (int id : Arrays.asList(R.id.loadButton, R.id.saveButton,
+		for (int id : Arrays.asList(R.id.saveButton,
 				R.id.undoButton, R.id.addButton, R.id.removeButton,
 				R.id.modeButton, R.id.scaleModeButton)) {
 			Button button = (Button) findViewById(id);// who's got the button?
@@ -138,10 +136,6 @@ public class FractalEditActivity extends Activity implements
 		switch (v.getId()) {
 		case R.id.modeButton:
 			stateManager.toggleEditMode();
-			break;
-		case R.id.loadButton:
-			Intent loadTntent = new Intent(this, GalleryActivity.class);
-			startActivityForResult(loadTntent, LOAD_REQUEST);
 			break;
 		case R.id.addButton:
 			stateManager.addTransform();

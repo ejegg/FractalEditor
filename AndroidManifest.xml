@@ -33,10 +33,6 @@
                     android:pathPrefix="/v1" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".LoadActivity"
-            android:label="@string/title_activity_load" >
-        </activity>
 
         <provider
             android:name=".persist.FractalStateProvider"
