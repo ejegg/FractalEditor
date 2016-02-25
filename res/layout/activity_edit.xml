@@ -9,7 +9,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="fill_horizontal|right|top"
+            android:gravity="right"
+            android:paddingRight="@dimen/activity_horizontal_margin"
             android:orientation="horizontal" >
 
             <Button
