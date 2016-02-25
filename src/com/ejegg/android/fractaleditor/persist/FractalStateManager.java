@@ -24,7 +24,7 @@ public class FractalStateManager implements ResultListener {
     private boolean continuousCalculation = false;
     private int calculationRepeatCount = 0;
     private static final int MAX_CALCULATION_REPEAT = 25;
-	private final Stack<FractalState> undoStack = new Stack<FractalState>();
+	private final Stack<FractalState> undoStack = new Stack<>();
 	private boolean uniformScaleMode = true;
 	
 	private static final int BUFFER_MULTIPLE = 3;
@@ -33,11 +33,8 @@ public class FractalStateManager implements ResultListener {
 	private final MessagePasser messagePasser;
 	private ProgressListener calculationListener;
 	private FractalState lastState = null;
-    private FractalState State = new FractalState(0, 0, "Sierpinski Pyramid", "",
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 -0.5 -0.5 -0.5 1.0 " +
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.5 -0.5 -0.5 1.0 " +
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 -0.5 0.5 1.0 " +
-													"0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.0 0.5 0.0 0.0 0.5 0.0 1.0");
+    private FractalState State = new FractalState();
+
 	private float[] boundingBox;
 
 	public FractalStateManager(MessagePasser messagePasser) {
@@ -75,7 +72,7 @@ public class FractalStateManager implements ResultListener {
 	public void toggleEditMode() {
 		editMode = !editMode;
 		State.clearSelection();
-		sendMessage(MessagePasser.MessageType.EDIT_MODE_CHANGED, editMode);
+		sendMessage(MessageType.EDIT_MODE_CHANGED, editMode);
 		if (editMode) {
 			cancelCalculation();
 		}
@@ -87,7 +84,7 @@ public class FractalStateManager implements ResultListener {
 	
 	public void toggleScaleMode() {
 		uniformScaleMode = !uniformScaleMode;
-		sendMessage(MessagePasser.MessageType.SCALE_MODE_CHANGED, uniformScaleMode);
+		sendMessage(MessageType.SCALE_MODE_CHANGED, uniformScaleMode);
 	}
 	
 	public void undo() {
@@ -96,17 +93,19 @@ public class FractalStateManager implements ResultListener {
 			stateChanged();
 		}
 		if (undoStack.empty()) {
-			sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
+			sendMessage(MessageType.UNDO_ENABLED_CHANGED, false);
 		}
 	}
-	
+
 	public void loadStateFromUri(ContentResolver contentResolver, Uri savedFractalUri) {
-		if (savedFractalUri.getPath().equals("/-1")) {
-			State = new FractalState(
-				0, 0, "New Fractal", "", ""
-			);
+		Boolean oldEditMode = editMode;
+		if (savedFractalUri == null) {
+			State = new FractalState();
+			// For a new fractal, start in edit mode
+			editMode = true;
 		} else {
 			final Cursor cursor = contentResolver.query(savedFractalUri, FractalStateProvider.Items.ALL_COLUMNS, null, null, null);
+			// TODO: handle trying to load non-existent fractal id
 			cursor.moveToFirst();
 			State = new FractalState(
 					cursor.getInt(cursor.getColumnIndex(FractalStateProvider.Items._ID)),
@@ -116,10 +115,15 @@ public class FractalStateManager implements ResultListener {
 					cursor.getString(cursor.getColumnIndex(FractalStateProvider.Items.SERIALIZED_TRANSFORMS))
 			);
 			cursor.close();
+			// For a saved fractal, start in render mode
+			editMode = false;
 		}
 
 		undoStack.clear();
-		sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
+		if (oldEditMode != editMode) {
+			sendMessage(MessageType.EDIT_MODE_CHANGED, editMode);
+		}
+		sendMessage(MessageType.UNDO_ENABLED_CHANGED, false);
 		stateChanged();
 	}
 
@@ -156,7 +160,7 @@ public class FractalStateManager implements ResultListener {
 			}
 		}
 		bufferIndex = 0;
-		sendMessage(MessagePasser.MessageType.NEW_POINTS_AVAILABLE, accumulatedPoints);
+		sendMessage(MessageType.NEW_POINTS_AVAILABLE, accumulatedPoints);
 	}
 	
 	public boolean isRecalculating() {
@@ -201,7 +205,7 @@ public class FractalStateManager implements ResultListener {
 			stateChanged();
 		}
 		if (undoWasEmpty && !undoStack.empty()) {
-			sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, true);
+			sendMessage(MessageType.UNDO_ENABLED_CHANGED, true);
 		}
 	}
 	
@@ -260,7 +264,7 @@ public class FractalStateManager implements ResultListener {
 	}
 	
 	private void stateChanged() {
-		sendMessage(MessagePasser.MessageType.STATE_CHANGED, true);
+		sendMessage(MessageType.STATE_CHANGED, true);
 		cancelCalculation();
 		fractalPoints = null;
 	}
@@ -278,7 +282,7 @@ public class FractalStateManager implements ResultListener {
 	public void incrementBufferIndex() {
 		bufferIndex = (bufferIndex + 1) % BUFFER_MULTIPLE;
 		if (bufferIndex > 0) {
-			sendMessage(MessagePasser.MessageType.NEW_POINTS_AVAILABLE, true);
+			sendMessage(MessageType.NEW_POINTS_AVAILABLE, true);
 		}
 	}
 	
@@ -305,7 +309,7 @@ public class FractalStateManager implements ResultListener {
 		);
 
 		undoStack.clear();
-		sendMessage(MessagePasser.MessageType.UNDO_ENABLED_CHANGED, false);
+		sendMessage(MessageType.UNDO_ENABLED_CHANGED, false);
 		stateChanged();
 	}
 }

@@ -18,7 +18,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.Resources.NotFoundException;
 import android.view.Menu;
 import android.view.View;
@@ -31,6 +30,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+// FIXME: hardcoded strings sprinkled around this class
 public class FractalEditActivity extends Activity implements
 		ProgressListener, OnClickListener,
 		DialogInterface.OnClickListener, MessagePasser.MessageListener {
@@ -60,14 +60,15 @@ public class FractalEditActivity extends Activity implements
 		stateManager.setCalculationListener(this);
 
 		Uri intentData = getIntent().getData();
-		if (intentData != null) {
-			if (intentData.getScheme().equals("content")) {
-				// locally saved fractal
-				stateManager.loadStateFromUri(getContentResolver(), intentData);
-			} else {
-				// web link opened in app
-				stateManager.loadStateFromUri(intentData);
-			}
+		if (intentData == null || intentData.getScheme().equals("content")) {
+			// new or locally saved fractal
+			stateManager.loadStateFromUri(getContentResolver(), intentData);
+		} else {
+			// web link opened in app
+			stateManager.loadStateFromUri(intentData);
+		}
+		if (intentData == null) {
+			toast(getResources().getString(R.string.add_instruction), true);
 		}
 		setButtonStates();
 
@@ -186,7 +187,7 @@ public class FractalEditActivity extends Activity implements
 	public void onClick(DialogInterface dialog, int which) {
 		
 		if (which == DialogInterface.BUTTON_NEGATIVE) {
-			Toast.makeText(this, "Canceled", Toast.LENGTH_SHORT).show();
+			toast("Cancelled", false);
 			return;
 		}
 		
@@ -211,21 +212,27 @@ public class FractalEditActivity extends Activity implements
 			);
 			saver.execute(state);
 		} catch (NotFoundException e) {
-			Toast.makeText( this, "Upload failed - URL not found", Toast.LENGTH_SHORT).show();
+			toast("Upload failed - URL not found", false);
 		}
 	}
 
 	@Override
 	public void ReceiveMessage(MessageType type, boolean value) {
 		switch(type) {
-		case STATE_SAVED:
-			Toast.makeText(this, value ? "Fractal saved" : "Error saving fractal", Toast.LENGTH_LONG).show();
+			case STATE_SAVED:
+				toast(value ? "Fractal saved" : "Error saving fractal", true);
 			break;
 		case STATE_UPLOADED:
-			Toast.makeText(this, value ? "Fractal uploaded" : "Error uploading fractal", Toast.LENGTH_LONG).show();
+			toast(value ? "Fractal uploaded" : "Error uploading fractal", true);
 			break;
 		default:
 			setButtonStates();
 		}
+	}
+
+	private void toast(String message, Boolean isLong) {
+		int length = isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT;
+		Toast.makeText(this, message, length).show();
+		Toast.makeText(this, message, length).show();
 	}
 }

@@ -49,7 +49,11 @@ public class FractalState {
 			}
 		}
 	}
-	
+
+	public FractalState() {
+		this(0, 0, "New Fractal", "", "");
+	}
+
 	public boolean equals(FractalState other) {
 		return this.getSerializedTransforms().equals(other.getSerializedTransforms());
 	}

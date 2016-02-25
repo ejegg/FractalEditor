@@ -11,12 +11,14 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 
 public class GalleryActivity extends Activity implements LoaderManager.LoaderCallbacks<Cursor> {
 	private RecyclerView fractalGallery;
 	private SavedFractalAdapter adapter;
+	private static int LOADER_ID = 1;
 
 	static final String[] PROJECTION = new String[] {
 			FractalStateProvider.Items.NAME,
@@ -43,11 +45,23 @@ public class GalleryActivity extends Activity implements LoaderManager.LoaderCal
 		fractalGallery.setAdapter(adapter);
 		fractalGallery.setLayoutManager(gridMgr);
 
-		getLoaderManager().initLoader(0, null, this);
+		getLoaderManager().initLoader(LOADER_ID, null, this);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		reloadCursor();
+	}
+
+	public void reloadCursor() {
+		findViewById(R.id.gallery_progress).setVisibility(View.VISIBLE);
+		getLoaderManager().restartLoader(LOADER_ID, null, this);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		Log.d("Gallery", "creating loader");
 		return new CursorLoader(this, FractalStateProvider.CONTENT_URI,
                 PROJECTION, null, null, null);
 	}

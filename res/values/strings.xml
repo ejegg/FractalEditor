@@ -21,5 +21,6 @@
     <string name="upload_url">https://fractaleditor.com/fractal/save</string>
     <string name="upload_prompt">Also Upload and Share</string>
     <string name="delete_prompt">Really Delete \"%s\"?</string>
+    <string name="add_instruction">Click + to add transforms</string>
 
 </resources>
