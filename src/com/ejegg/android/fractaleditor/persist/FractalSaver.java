@@ -61,7 +61,7 @@ public class FractalSaver extends AsyncTask<FractalState, Integer, Boolean> {
 			contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
 
 			if (url != null) {
-				FractalUploader uploader = new FractalUploader(messagePasser, url);
+				FractalUploader uploader = new FractalUploader(messagePasser, contentResolver, url);
 				uploader.execute(state);
 			}
 		}

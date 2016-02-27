@@ -8,18 +8,27 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.JsonReader;
 import android.util.Log;
 
 import com.ejegg.android.fractaleditor.MessagePasser;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 
+import org.json.JSONObject;
+
 public class FractalUploader extends AsyncTask<FractalState, String, Boolean>{
 	private MessagePasser passer;
+	private final ContentResolver resolver;
 	private URL url;
 
-	public FractalUploader(MessagePasser passer, String url) throws MalformedURLException {
+	public FractalUploader(MessagePasser passer, ContentResolver resolver, String url) throws MalformedURLException {
 		this.passer = passer;
+		this.resolver = resolver;
 		this.url = new URL(url);
 	}
 
@@ -29,6 +38,7 @@ public class FractalUploader extends AsyncTask<FractalState, String, Boolean>{
 		Boolean success = true;
 		FractalState state = params[0];
 		String thumbnailPath = state.getThumbnailPath();
+		int newSharedId = 0;
 
 		try {
 			File thumbnail = new File(thumbnailPath);
@@ -69,13 +79,21 @@ public class FractalUploader extends AsyncTask<FractalState, String, Boolean>{
 			thumbStream.close();
 
 			// TODO: something with connection.getResponseCode();
-			int responseLength = Math.min(1000, Integer.parseInt(connection.getHeaderField("Content-Length")));
+			//int len = connection.getContentLength();
+			int responseLength = 1000;//Math.min(1000, connection.getContentLength());
 			byte[] responseBuffer = new byte[responseLength];
-			connection.getInputStream().read(responseBuffer);
-			String response = new String(responseBuffer, "UTF-8");
-			Log.d("Saver", "Attempted upload, got response: " + response);
+			bytesRead = connection.getInputStream().read(responseBuffer);
+			byte[] truncated = new byte[bytesRead];
+			System.arraycopy(responseBuffer, 0, truncated, 0, bytesRead);
+			String response = new String(truncated, "UTF-8");
+			Log.i("Saver", "Attempted upload, got response: " + response);
 			if (response.startsWith("Error")) {
 				throw new Exception(response);
+			}
+			JSONObject json = new JSONObject(response);
+			int returnedId = json.getInt("id");
+			if (state.getSharedId() != returnedId) {
+				newSharedId = returnedId;
 			}
 		}
 		catch( Exception e ) {
@@ -85,6 +103,22 @@ public class FractalUploader extends AsyncTask<FractalState, String, Boolean>{
 		finally {
 			if (connection != null) {
 				connection.disconnect();
+			}
+		}
+		if (newSharedId > 0) {
+			try{
+				ContentValues v = new ContentValues();
+				v.put(FractalStateProvider.Items.SHARED_ID, newSharedId);
+				Uri uri = ContentUris.withAppendedId(
+					FractalStateProvider.CONTENT_URI,
+					state.getDeviceId()
+				);
+				int rowsUpdated = resolver.update(uri, v, null, null);
+				Log.d("Uploader", String.format("Updated shared id for local ID %d to %d, %d rows updated", state.getDeviceId(), newSharedId, rowsUpdated));
+				state.setSharedId(newSharedId);
+			}
+			catch( Exception e ) {
+				Log.e("Uploader", "Exception updating shared ID: " + e.getMessage());
 			}
 		}
 		return success;
