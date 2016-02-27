@@ -18,7 +18,12 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".FractalEditActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:parentActivityName=".GalleryActivity" >
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value=".GalleryActivity" />
+
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 

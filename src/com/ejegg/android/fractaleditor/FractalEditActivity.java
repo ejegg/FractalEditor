@@ -11,6 +11,7 @@ import com.ejegg.android.fractaleditor.render.MainRenderer;
 import com.ejegg.android.fractaleditor.spatial.Camera;
 import com.ejegg.android.fractaleditor.R;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -19,7 +20,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.res.Resources.NotFoundException;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
@@ -47,6 +51,7 @@ public class FractalEditActivity extends Activity implements
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_edit);
 		setButtons();
+		getActionBar().setDisplayHomeAsUpEnabled(true);
 
 		FractalEditor appContext = (FractalEditor) getApplicationContext();
 		passer = appContext.getMessagePasser();
@@ -172,6 +177,25 @@ public class FractalEditActivity extends Activity implements
 		default:
 			break;
 		}
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch(item.getItemId()) {
+			case android.R.id.home:
+				Intent i = new Intent(this, GalleryActivity.class);
+				if (NavUtils.shouldUpRecreateTask(this, i)) {
+					TaskStackBuilder b = TaskStackBuilder.create(getApplicationContext());
+					b.addParentStack(this);
+					b.startActivities();
+				}
+				NavUtils.navigateUpFromSameTask(this);
+				break;
+			default:
+				super.onOptionsItemSelected(item);
+				break;
+		}
+		return true;
 	}
 
 	private void setButtonStates() {
