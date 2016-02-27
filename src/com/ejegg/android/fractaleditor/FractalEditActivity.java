@@ -12,6 +12,7 @@ import com.ejegg.android.fractaleditor.spatial.Camera;
 import com.ejegg.android.fractaleditor.R;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -34,7 +35,6 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-// FIXME: hardcoded strings sprinkled around this class
 public class FractalEditActivity extends Activity implements
 		ProgressListener, OnClickListener,
 		DialogInterface.OnClickListener, MessagePasser.MessageListener {
@@ -211,7 +211,7 @@ public class FractalEditActivity extends Activity implements
 	public void onClick(DialogInterface dialog, int which) {
 		
 		if (which == DialogInterface.BUTTON_NEGATIVE) {
-			toast("Cancelled", false);
+			toast(getResources().getString(R.string.cancelled), false);
 			return;
 		}
 		
@@ -236,18 +236,19 @@ public class FractalEditActivity extends Activity implements
 			);
 			saver.execute(state);
 		} catch (NotFoundException e) {
-			toast("Upload failed - URL not found", false);
+			toast(getResources().getString(R.string.upload_error_url), false);
 		}
 	}
 
 	@Override
 	public void ReceiveMessage(MessageType type, boolean value) {
+		Resources s = getResources();
 		switch(type) {
 			case STATE_SAVED:
-				toast(value ? "Fractal saved" : "Error saving fractal", true);
+				toast(s.getString(value ? R.string.save_success : R.string.save_error), true);
 			break;
 		case STATE_UPLOADED:
-			toast(value ? "Fractal uploaded" : "Error uploading fractal", true);
+			toast(s.getString(value ? R.string.upload_success : R.string.upload_error), true);
 			break;
 		default:
 			setButtonStates();

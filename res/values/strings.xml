@@ -22,5 +22,11 @@
     <string name="upload_prompt">Also Upload and Share</string>
     <string name="delete_prompt">Really Delete \"%s\"?</string>
     <string name="add_instruction">Click + to add transforms</string>
+    <string name="save_success">Fractal saved</string>
+    <string name="save_error">Error saving fractal</string>
+    <string name="upload_success">Fractal uploaded</string>
+    <string name="upload_error">Error uploading fractal</string>
+    <string name="upload_error_url">Upload failed - URL not found</string>
+    <string name="cancelled">Cancelled</string>
 
 </resources>
