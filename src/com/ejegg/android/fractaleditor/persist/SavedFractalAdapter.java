@@ -33,14 +33,14 @@ public class SavedFractalAdapter extends RecyclerView.Adapter<SavedFractalAdapte
 
 	@Override
 	public void onBindViewHolder(SavedFractalViewHolder viewHolder, int i) {
-		if (i == data.getCount()) {
+		if (i == 0) {
 			viewHolder.state = null;
 			viewHolder.thumbnailView.setImageDrawable(
 				context.getResources().getDrawable(R.drawable.ic_menu_add)
 			);
 			return;
 		}
-		data.moveToPosition(i);
+		data.moveToPosition(data.getCount() - i);
 		FractalState state = new FractalState(
 			data.getInt(data.getColumnIndex(FractalStateProvider.Items._ID)),
 			0,
