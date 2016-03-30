@@ -62,10 +62,22 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		//Log.d("MainRenderer", "Requested frame, edit mode is " + editMode);
 		if (editMode) {
 			clear();
+			if (!cubeRenderer.isValid())  {
+				cubeRenderer.destroy();
+				cubeRenderer = new CubeRenderer(camera, stateManager);
+			}
 			cubeRenderer.draw();
 		} else {
+			if (!fractalRenderer.isValid())  {
+				fractalRenderer.destroy();
+				fractalRenderer = new FractalRenderer(camera, stateManager);
+			}
 			newCameraPosition = camera.getLastMoveId();
 			if (newCameraPosition == lastCameraPosition) {
+				if (!textureRenderer.isValid()) {
+					textureRenderer.destroy();
+					textureRenderer = new TextureRenderer(camera, stateManager, passer);
+				}
 				textureRenderer.preRender();
 				fractalRenderer.draw(true, minDist, maxDist);
 				textureRenderer.draw();
@@ -110,10 +122,10 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		GLES20.glEnable(GLES20.GL_BLEND);
 		GLES20.glClearDepthf(1.0f);
 		GLES20.glEnable( GLES20.GL_DEPTH_TEST );
-		GLES20.glDepthFunc( GLES20.GL_LEQUAL );
+		GLES20.glDepthFunc(GLES20.GL_LEQUAL);
     	GLES20.glEnable(GLES20.GL_CULL_FACE);
     	GLES20.glCullFace(GLES20.GL_BACK);
-		GLES20.glDepthMask( true );
+		GLES20.glDepthMask(true);
     	GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 
 		fractalRenderer = new FractalRenderer(camera, stateManager);

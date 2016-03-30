@@ -16,7 +16,9 @@ public abstract class GlRenderer {
 	protected int fragmentShaderHandle;
 	protected final Camera camera;
 	protected final FractalStateManager stateManager;
-	
+
+	protected boolean valid = true; // if false, this instance needs to be destroyed and recreated
+
 	public static final int COORDS_PER_VERTEX = 3;
 	public static final int VERTEX_STRIDE = COORDS_PER_VERTEX * 4;
 	
@@ -52,7 +54,12 @@ public abstract class GlRenderer {
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
             Log.e(TAG, op + ": glError " + error);
-            throw new RuntimeException(op + ": glError " + error);
+            valid = false;
         }
     }
+
+	public boolean isValid() {
+		return valid;
+	}
+
 }
