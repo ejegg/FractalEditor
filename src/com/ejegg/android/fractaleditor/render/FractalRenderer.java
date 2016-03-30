@@ -3,11 +3,12 @@ package com.ejegg.android.fractaleditor.render;
 import com.ejegg.android.fractaleditor.persist.FractalStateManager;
 import com.ejegg.android.fractaleditor.spatial.Camera;
 
+import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.util.Log;
 
 public class FractalRenderer extends GlRenderer {
-		
+    	
 	private final int mvpMatrixHandle;
 	private final int colorHandle;
 	private final int fadeHandle;
@@ -20,7 +21,7 @@ public class FractalRenderer extends GlRenderer {
     public FractalRenderer(Camera camera, FractalStateManager stateManager) {
     	super(camera, stateManager);
     	vertexShaderCode =
-    	    		"uniform mat4 uMVPMatrix;" +
+    	        	"uniform mat4 uMVPMatrix;" +
     	    	    "attribute vec4 vPosition;" +
     	    	    "varying float dist; " +
     	    	    "void main() {" +
@@ -47,43 +48,50 @@ public class FractalRenderer extends GlRenderer {
     	    	    "}";
 
     	setShaders();
-    	//Log.d("FractalRenderer", "Called setShaders, programHandle is " + programHandle);
-		mvpMatrixHandle = GLES20.glGetUniformLocation(programHandle, "uMVPMatrix");
+    	Log.d("FractalRenderer", "Called setShaders, programHandle is " + programHandle);
+    	mvpMatrixHandle = GLES20.glGetUniformLocation(programHandle, "uMVPMatrix");
     	colorHandle = GLES20.glGetUniformLocation(programHandle, "vColor");
     	positionHandle = GLES20.glGetAttribLocation(programHandle, "vPosition");
     	fadeHandle = GLES20.glGetUniformLocation(programHandle, "fade");
     	minDistHandle = GLES20.glGetUniformLocation(programHandle, "minDist");
     	distFacHandle = GLES20.glGetUniformLocation(programHandle, "distFac");
     	maxPoints = GLES20.GL_MAX_VERTEX_ATTRIBS - 25;
+    	Log.d("FractalRenderer", "maxPoints is " + maxPoints);
+    	int[] maxv = {0};
+    	GLES10.glGetIntegerv(GLES10.GL_MAX_ELEMENTS_VERTICES, maxv, 0);
+    	//Log.d("FractalRenderer", "GL_MAX_ELEMENTS_VERTICES is " + GLES20.GL_MAX_);
     	stateManager.setNumPoints(maxPoints);
     }
-    
+
     public void draw(boolean accumulatePoints, float minDist, float maxDist) {
     	if (!stateManager.hasPoints()) {
-    		stateManager.recalculatePoints();
-    		return;
+    		Log.v("FractalRenderer", "State manager has no points, requesting recalculation");
+        	stateManager.recalculatePoints();
+        	return;
     	}
     	int bufferIndex = stateManager.getBufferIndex();
-    	Log.d("FractalRenderer", "bufferIndex is " + bufferIndex);
+    	Log.v("FractalRenderer", "bufferIndex is " + bufferIndex);
     	float[] mvpMatrix = camera.getMVPMatrix();
     	GLES20.glUseProgram(programHandle);
-
+    	checkGlError("FractalRenderer", "glUseProgram");
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
-
+    	checkGlError("FractalRenderer", "glUniformMatrix4fv");
     	GLES20.glEnableVertexAttribArray(positionHandle);
-    	
-    	GLES20.glVertexAttribPointer(positionHandle, 
-    			COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, stateManager.getFractalPoints());
-
+    	checkGlError("FractalRenderer", "glEnableVertexAttribArray");
+    	GLES20.glVertexAttribPointer(positionHandle,
+    	    	COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, stateManager.getFractalPoints());
+    	checkGlError("FractalRenderer", "glVertexAttribPointer");
     	GLES20.glUniform4fv(colorHandle, 1, color, 0);
-    	
+    	checkGlError("FractalRenderer", "glUniform4fv - color");
     	GLES20.glUniform1i(fadeHandle, accumulatePoints ? 1 : 0);
-    	
+    	checkGlError("FractalRenderer", "glUniform1i - fade");
     	GLES20.glUniform1f(minDistHandle, minDist);
+    	checkGlError("FractalRenderer", "glUniform1f - mindist");
     	GLES20.glUniform1f(distFacHandle, 2 * (maxDist - minDist));
-    	
+    	checkGlError("FractalRenderer", "glUniform1f - distfac");
     	GLES20.glDrawArrays(GLES20.GL_POINTS, bufferIndex * maxPoints, maxPoints);
-    	
+    	checkGlError("FractalRenderer", "glDrawArrays");
     	GLES20.glDisableVertexAttribArray(positionHandle);
+    	checkGlError("FractalRenderer", "glDisableVertexAttribArray");
     }
 }

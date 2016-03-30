@@ -92,22 +92,22 @@ public class CubeRenderer extends GlRenderer {
                     "  } " +                    
                     "}";
 
-        //Log.d("CubeRenderer", "started initialize");
+        Log.d("CubeRenderer", "started initialize");
         setShaders();
-        //Log.d("CubeRenderer", "Program handle is " + programHandle);
+        Log.d("CubeRenderer", "Program handle is " + programHandle);
         mvpMatrixHandle = GLES20.glGetUniformLocation(programHandle, "uMVPMatrix");
-        //Log.d("CubeRenderer", "uMVPMatrix handle is " + mvpMatrixHandle);
+        Log.d("CubeRenderer", "uMVPMatrix handle is " + mvpMatrixHandle);
         transformMatrixHandle = GLES20.glGetUniformLocation(programHandle, "transformMatrix");
-        //Log.d("CubeRenderer", "transformMatrix handle is " + transformMatrixHandle);
+        Log.d("CubeRenderer", "transformMatrix handle is " + transformMatrixHandle);
         colorHandle = GLES20.glGetAttribLocation(programHandle, "vColor");
-        //Log.d("CubeRenderer", "vColor handle is " + colorHandle);
+        Log.d("CubeRenderer", "vColor handle is " + colorHandle);
         positionHandle = GLES20.glGetAttribLocation(programHandle, "vPosition");
-        //Log.d("CubeRenderer", "vPosition handle is " + positionHandle);
+        Log.d("CubeRenderer", "vPosition handle is " + positionHandle);
         selectedHandle = GLES20.glGetUniformLocation(programHandle, "selected");
-        //Log.d("CubeRenderer", "selected handle is " + selectedHandle);
-        //Log.d("CubeRenderer", "finished initialize");
+        Log.d("CubeRenderer", "selected handle is " + selectedHandle);
+        Log.d("CubeRenderer", "finished initialize");
     }
-    
+
     private void setPoints() {
         ByteBuffer bb = ByteBuffer.allocateDirect(cubeTriangleVertices.length * 4);
         bb.order(ByteOrder.nativeOrder());
@@ -137,7 +137,7 @@ public class CubeRenderer extends GlRenderer {
     }
     
     public void draw() {
-        //Log.d("CubeRenderer", "draw");
+        Log.v("CubeRenderer", "draw");
         final float[] mvpMatrix = camera.getMVPMatrix();
         final FractalState state = stateManager.getState();
         final int numTransforms = state.getNumTransforms();
@@ -145,26 +145,26 @@ public class CubeRenderer extends GlRenderer {
         final float[][] transforms = state.getTransforms();
         GLES20.glEnable( GLES20.GL_DEPTH_TEST );
         GLES20.glUseProgram(programHandle);
-        //checkGlError("CubeRenderer", "glUseProgram");
+        checkGlError("CubeRenderer", "glUseProgram");
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0);
-        //checkGlError("CubeRenderer", "glUniformMatrix4fv mvpMatrix");
+        checkGlError("CubeRenderer", "glUniformMatrix4fv mvpMatrix");
         GLES20.glEnableVertexAttribArray(positionHandle);
-        //checkGlError("CubeRenderer", "glEnableVertexAttribArray position");
+        checkGlError("CubeRenderer", "glEnableVertexAttribArray position");
         GLES20.glEnableVertexAttribArray(colorHandle);
-        //checkGlError("CubeRenderer", "glEnableVertexAttribArray color");
+        checkGlError("CubeRenderer", "glEnableVertexAttribArray color");
         GLES20.glVertexAttribPointer(positionHandle, 
                         COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, pointBuffer);
-        //checkGlError("CubeRenderer", "glVertexAttribPointer position");
+        checkGlError("CubeRenderer", "glVertexAttribPointer position");
         GLES20.glVertexAttribPointer(colorHandle, 4, GLES20.GL_FLOAT, false, 16, colorBuffer);
-        //checkGlError("CubeRenderer", "glVertexAttribPointer color");
+        checkGlError("CubeRenderer", "glVertexAttribPointer color");
         
         for (int i = 0; i < numTransforms; i++) {
 	        GLES20.glUniformMatrix4fv(transformMatrixHandle, 1, false, transforms[i], 0);
-	        //checkGlError("CubeRenderer", "glUniformMatrix4fv");
+	        checkGlError("CubeRenderer", "glUniformMatrix4fv");
 	        GLES20.glUniform1i(selectedHandle, selectedTransform == i ? 1 : 0);
-	        //checkGlError("CubeRenderer", "glUniform1i");
+	        checkGlError("CubeRenderer", "glUniform1i");
 	        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
-	        //checkGlError("CubeRenderer", "glDrawArrays");
+	        checkGlError("CubeRenderer", "glDrawArrays");
         }
         
         GLES20.glDisableVertexAttribArray(positionHandle);      

@@ -8,8 +8,8 @@ android {
         applicationId "com.ejegg.android.fractaleditor"
         minSdkVersion 14
         targetSdkVersion 23
-        versionCode 4
-        versionName "1.0.0-a4"
+        versionCode 5
+        versionName "1.0.0-a5"
     }
     buildTypes {
         release {

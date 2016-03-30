@@ -200,6 +200,7 @@ public class TextureRenderer extends GlRenderer implements MessagePasser.Message
 	}
 	
 	public void freeResources() {
+		Log.d("TextureRenderer", "Destroy called");
 		GLES20.glDeleteTextures(2, textures, 0);
 		GLES20.glDeleteFramebuffers(1, frameBuffer, 0);
 		destroy();
