@@ -194,6 +194,9 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 	}
 
 	private void grabPixels() {
+		if (wrappedThumbnailBuffer == null) {
+			return;
+		}
 		wrappedThumbnailBuffer.position(0);
 		GLES20.glReadPixels(
 				0,

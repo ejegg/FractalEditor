@@ -6,8 +6,6 @@ import com.ejegg.android.fractaleditor.spatial.Camera;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import java.nio.FloatBuffer;
-
 public class FractalRenderer extends GlRenderer {
     	
 	private final int mvpMatrixHandle;

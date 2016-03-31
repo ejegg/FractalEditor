@@ -22,16 +22,16 @@ public class FractalStateManager implements ResultListener {
 	private final static String LOG_TAG = "FractalStateManager";
 
 	// Number of points to calculate per batch
-	public final static int BATCH_SIZE = 20000;
+	public final static int BATCH_SIZE = 30000;
 
 	// how many floats that is
 	public final static int BATCH_FLOATS = BATCH_SIZE * GlRenderer.COORDS_PER_VERTEX;
 
 	// Maximum number of points to hold on to
-	public static final int MAX_POINTS = BATCH_SIZE * 12;
+	public static final int MAX_POINTS = BATCH_SIZE * 10;
 
 	// Number of batches to calculate
-	private static final int MAX_CALCULATION_REPEAT = 48;
+	private static final int MAX_CALCULATION_REPEAT = 36;
 
 	private PointSet fractalPoints;
     private FractalCalculatorTask calculator;
