@@ -54,7 +54,16 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
                 int curPos;
                 int j;
                 float f;
-        for (int i = 1; i< numPoints; i++) {
+
+        // Calculate some initial points to throw away
+        for (int i = 1; i< DISCARD_COUNT; i++) {
+            transform = transforms[r.nextInt(numTransforms)];
+            curPos = i * GlRenderer.COORDS_PER_VERTEX;
+            Matrix.multiplyMV(fractalPoints, curPos, transform, 0, fractalPoints, lastPos);
+            lastPos = curPos;
+        }
+        // Now start over from the zero-th position
+        for (int i = 0; i< numPoints; i++) {
                 transform = transforms[r.nextInt(numTransforms)];
                 curPos = i * GlRenderer.COORDS_PER_VERTEX;
                 Matrix.multiplyMV(fractalPoints, curPos, transform, 0, fractalPoints, lastPos);
@@ -76,13 +85,6 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
                                 return null;
                         }
                 }
-        }
-        // Overwrite the first N points we calculated with better ones
-        for (int i = 0; i< DISCARD_COUNT; i++) {
-                transform = transforms[r.nextInt(numTransforms)];
-                curPos = i * GlRenderer.COORDS_PER_VERTEX;
-                Matrix.multiplyMV(fractalPoints, curPos, transform, 0, fractalPoints, lastPos);
-                lastPos = curPos;
         }
 
         return fractalPoints;
