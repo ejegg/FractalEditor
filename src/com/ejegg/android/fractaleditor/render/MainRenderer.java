@@ -81,7 +81,6 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 				textureRenderer.preRender();
 				fractalRenderer.draw(true, minDist, maxDist);
 				textureRenderer.draw();
-				stateManager.incrementBufferIndex();
 			} else {
 				clear();
 				fractalRenderer.draw(false, 0, 0);	
@@ -143,7 +142,7 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 					Log.d("MainRenderer", String.format("MinDist is %f, MaxDist is %f", minDist, maxDist));
 					calculateMinMaxDist();
 				}
-				if (stateManager.getBufferIndex() == 1) {
+				if (stateManager.getPointsRendered() == FractalStateManager.MAX_POINTS) {
 					renderThumbnail = true;
 				}
 				break;

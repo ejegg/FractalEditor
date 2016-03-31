@@ -3,9 +3,10 @@ package com.ejegg.android.fractaleditor.render;
 import com.ejegg.android.fractaleditor.persist.FractalStateManager;
 import com.ejegg.android.fractaleditor.spatial.Camera;
 
-import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.util.Log;
+
+import java.nio.FloatBuffer;
 
 public class FractalRenderer extends GlRenderer {
     	
@@ -15,7 +16,6 @@ public class FractalRenderer extends GlRenderer {
 	private final int minDistHandle;
 	private final int distFacHandle;
 	private final int positionHandle;
-	private final int maxPoints;
 	private final float color[] = { 0.35f, 1.0f, 0.3f, 1.0f };
     
     public FractalRenderer(Camera camera, FractalStateManager stateManager) {
@@ -55,22 +55,15 @@ public class FractalRenderer extends GlRenderer {
     	fadeHandle = GLES20.glGetUniformLocation(programHandle, "fade");
     	minDistHandle = GLES20.glGetUniformLocation(programHandle, "minDist");
     	distFacHandle = GLES20.glGetUniformLocation(programHandle, "distFac");
-    	maxPoints = GLES20.GL_MAX_VERTEX_ATTRIBS - 25;
-    	Log.d("FractalRenderer", "maxPoints is " + maxPoints);
-    	int[] maxv = {0};
-    	GLES10.glGetIntegerv(GLES10.GL_MAX_ELEMENTS_VERTICES, maxv, 0);
-    	//Log.d("FractalRenderer", "GL_MAX_ELEMENTS_VERTICES is " + GLES20.GL_MAX_);
-    	stateManager.setNumPoints(maxPoints);
     }
 
+	// TODO: in accumulatePoints mode, only render each batch once.
     public void draw(boolean accumulatePoints, float minDist, float maxDist) {
     	if (!stateManager.hasPoints()) {
     		Log.v("FractalRenderer", "State manager has no points, requesting recalculation");
         	stateManager.recalculatePoints();
         	return;
     	}
-    	int bufferIndex = stateManager.getBufferIndex();
-    	Log.v("FractalRenderer", "bufferIndex is " + bufferIndex);
     	float[] mvpMatrix = camera.getMVPMatrix();
     	GLES20.glUseProgram(programHandle);
     	checkGlError("FractalRenderer", "glUseProgram");
@@ -78,8 +71,9 @@ public class FractalRenderer extends GlRenderer {
     	checkGlError("FractalRenderer", "glUniformMatrix4fv");
     	GLES20.glEnableVertexAttribArray(positionHandle);
     	checkGlError("FractalRenderer", "glEnableVertexAttribArray");
+		FractalStateManager.PointSet points = stateManager.getFractalPoints();
     	GLES20.glVertexAttribPointer(positionHandle,
-    	    	COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, stateManager.getFractalPoints());
+				COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, VERTEX_STRIDE, points.getPoints());
     	checkGlError("FractalRenderer", "glVertexAttribPointer");
     	GLES20.glUniform4fv(colorHandle, 1, color, 0);
     	checkGlError("FractalRenderer", "glUniform4fv - color");
@@ -89,9 +83,14 @@ public class FractalRenderer extends GlRenderer {
     	checkGlError("FractalRenderer", "glUniform1f - mindist");
     	GLES20.glUniform1f(distFacHandle, 2 * (maxDist - minDist));
     	checkGlError("FractalRenderer", "glUniform1f - distfac");
-    	GLES20.glDrawArrays(GLES20.GL_POINTS, bufferIndex * maxPoints, maxPoints);
-    	checkGlError("FractalRenderer", "glDrawArrays");
-    	GLES20.glDisableVertexAttribArray(positionHandle);
+		int totalPoints = points.getNumPoints();
+		//Log.d("FractalRenderer", String.format("State manager reports %d total points", totalPoints));
+		for ( int idx = 0; idx < totalPoints; idx += FractalStateManager.BATCH_SIZE) {
+			//Log.d("FractalRenderer", String.format("Rendering %d points starting at index %d", FractalStateManager.BATCH_SIZE, idx));
+			GLES20.glDrawArrays(GLES20.GL_POINTS, idx, FractalStateManager.BATCH_SIZE);
+			checkGlError("FractalRenderer", "glDrawArrays");
+		}
+		GLES20.glDisableVertexAttribArray(positionHandle);
     	checkGlError("FractalRenderer", "glDisableVertexAttribArray");
     }
 }

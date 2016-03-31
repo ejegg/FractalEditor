@@ -1,9 +1,6 @@
 package com.ejegg.android.fractaleditor;
 
 import java.lang.ref.SoftReference;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.Random;
 
 import com.ejegg.android.fractaleditor.persist.FractalState;
@@ -13,14 +10,13 @@ import android.opengl.Matrix;
 import android.os.AsyncTask;
 import android.util.Log;
 
-public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Request, Integer, FloatBuffer> {
+public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Request, Integer, float[]> {
 
     private final Random r = new Random();
     private ProgressListener progressListener;
     private final ResultListener resultListener;
     private static final int DISCARD_COUNT = 10;
     private static SoftReference<float[]> pointsRef;
-    private static SoftReference<ByteBuffer> bytesRef;
     private final float[] boundingBox = new float[6];
     
     public FractalCalculatorTask(ProgressListener progressListener, ResultListener resultListener) {
@@ -29,7 +25,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     }
     
     @Override
-    protected FloatBuffer doInBackground(Request... fractalRequest) {
+    protected float[] doInBackground(Request... fractalRequest) {
         //Log.d("FractalCalculatorTask", "Starting calculation");
         int numPoints = fractalRequest[0].getNumPoints();
         int numTransforms = fractalRequest[0].getFractal().getNumTransforms();
@@ -43,10 +39,11 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
         }
         
         if (fractalPoints == null) {
-                Log.d("FractalCalculatorTask", "Allocating new points buffer");
+                Log.d("FractalCalculatorTask", "Allocating new points array");
                 fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
-                pointsRef = new SoftReference<float[]>(fractalPoints);
+                pointsRef = new SoftReference<>(fractalPoints);
         }
+
         for(int i = 0; i < 3; i++) {
                 fractalPoints[i] = r.nextFloat() * 2.0f - 1.0f;
         }
@@ -80,36 +77,15 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
                         }
                 }
         }
-        
+        // Overwrite the first N points we calculated with better ones
         for (int i = 0; i< DISCARD_COUNT; i++) {
                 transform = transforms[r.nextInt(numTransforms)];
                 curPos = i * GlRenderer.COORDS_PER_VERTEX;
                 Matrix.multiplyMV(fractalPoints, curPos, transform, 0, fractalPoints, lastPos);
                 lastPos = curPos;
         }
-        FloatBuffer pointBuffer = allocateBuffer(fractalPoints.length);
-        // add the coordinates to the FloatBuffer
-        pointBuffer.put(fractalPoints);
-        // set the buffer to read the first coordinate
-        pointBuffer.position(0);
-        //Log.d("FractalCalculatorTask", "returning pointBuffer");
-        return pointBuffer;
-        }
-                
-        private FloatBuffer allocateBuffer(int length) {
-        ByteBuffer bb = null;
-        if (bytesRef != null) {
-                bb = bytesRef.get();
-        }
-        if (bb == null) {
-                Log.d("FractalCalculatorTask", "Allocating new byte buffer");
-                bb = ByteBuffer.allocateDirect(length * 4);
-            bb.order(ByteOrder.nativeOrder());
-            bytesRef = new SoftReference<ByteBuffer>(bb);
-        }
 
-        // create a floating point buffer from the ByteBuffer
-        return bb.asFloatBuffer();
+        return fractalPoints;
     }
 
     public static class Request {
@@ -137,7 +113,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
             }
     }
     
-    protected void onPostExecute(FloatBuffer points){
+    protected void onPostExecute(float[] points){
             Log.d("FractalCalculatorTask", "onPostExecute, publishing points");
             if (progressListener != null) {
                     progressListener.finished();
@@ -152,6 +128,6 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
     }
     
     public interface ResultListener {
-            void finished(FloatBuffer points, float[] boundingBox);
+            void finished(float[] points, float[] boundingBox);
     }
 }

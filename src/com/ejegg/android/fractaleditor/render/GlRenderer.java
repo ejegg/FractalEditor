@@ -20,7 +20,8 @@ public abstract class GlRenderer {
 	protected boolean valid = true; // if false, this instance needs to be destroyed and recreated
 
 	public static final int COORDS_PER_VERTEX = 3;
-	public static final int VERTEX_STRIDE = COORDS_PER_VERTEX * 4;
+	public static final int BYTES_PER_FLOAT = 4;
+	public static final int VERTEX_STRIDE = COORDS_PER_VERTEX * BYTES_PER_FLOAT;
 	
 	protected GlRenderer(Camera camera, FractalStateManager stateManager) {
 		this.camera = camera;

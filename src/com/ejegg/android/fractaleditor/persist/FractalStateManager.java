@@ -1,5 +1,7 @@
 package com.ejegg.android.fractaleditor.persist;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.Stack;
 
@@ -8,6 +10,7 @@ import com.ejegg.android.fractaleditor.MessagePasser;
 import com.ejegg.android.fractaleditor.FractalCalculatorTask.ResultListener;
 import com.ejegg.android.fractaleditor.MessagePasser.MessageType;
 import com.ejegg.android.fractaleditor.ProgressListener;
+import com.ejegg.android.fractaleditor.render.GlRenderer;
 import com.ejegg.android.fractaleditor.spatial.RayCubeIntersection;
 
 import android.content.ContentResolver;
@@ -16,19 +19,29 @@ import android.net.Uri;
 import android.util.Log;
 
 public class FractalStateManager implements ResultListener {
-	private int numPoints = 200000;
-    private FloatBuffer fractalPoints = null;
+	private final static String LOG_TAG = "FractalStateManager";
+
+	// Number of points to calculate per batch
+	public final static int BATCH_SIZE = 20000;
+
+	// how many floats that is
+	public final static int BATCH_FLOATS = BATCH_SIZE * GlRenderer.COORDS_PER_VERTEX;
+
+	// Maximum number of points to hold on to
+	public static final int MAX_POINTS = BATCH_SIZE * 12;
+
+	// Number of batches to calculate
+	private static final int MAX_CALCULATION_REPEAT = 48;
+
+	private PointSet fractalPoints = new PointSet(null, 0);
     private FractalCalculatorTask calculator;
     private boolean editMode = false;
     private boolean recalculating = false;
     private boolean continuousCalculation = false;
     private int calculationRepeatCount = 0;
-    private static final int MAX_CALCULATION_REPEAT = 25;
 	private final Stack<FractalState> undoStack = new Stack<>();
 	private boolean uniformScaleMode = true;
-	
-	private static final int BUFFER_MULTIPLE = 3;
-	private int bufferIndex = 0;
+
 	
 	private final MessagePasser messagePasser;
 	private ProgressListener calculationListener;
@@ -40,20 +53,12 @@ public class FractalStateManager implements ResultListener {
 	public FractalStateManager(MessagePasser messagePasser) {
 		this.messagePasser = messagePasser;
 	}
-	
-	public int getNumPoints() {
-		return numPoints;
-	}
-	
-	public void setNumPoints(int numPoints) {
-		this.numPoints = numPoints;
-	}
-	
+
 	public boolean hasPoints() {
-		return fractalPoints != null;
+		return fractalPoints.getNumPoints() > 0;
 	}
 	
-	public FloatBuffer getFractalPoints() {
+	public PointSet getFractalPoints() {
 		return fractalPoints;
 	}
 	
@@ -138,17 +143,19 @@ public class FractalStateManager implements ResultListener {
 	public void recalculatePoints() {
 		if (recalculating) return;
 		
-		recalculating = true;		
-		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(State, numPoints * BUFFER_MULTIPLE);
-		calculator = new FractalCalculatorTask(fractalPoints == null ? calculationListener : null, this);
+		recalculating = true;
+		//Log.d(LOG_TAG, String.format("Have %d points, requesting %d new ones", getPointsRendered(), BATCH_SIZE));
+		FractalCalculatorTask.Request request = new FractalCalculatorTask.Request(State, BATCH_SIZE);
+		calculator = new FractalCalculatorTask(fractalPoints.getNumPoints() == 0 ? calculationListener : null, this);
 		calculator.execute(request);
 	}
 
 	@Override
-	public void finished(FloatBuffer points, float[] boundingBox) {
+	public void finished(float[] points, float[] boundingBox) {
 		this.boundingBox = boundingBox;
 		boolean accumulatedPoints = (fractalPoints != null);
-		this.fractalPoints = points;
+
+		this.fractalPoints = createNewPointSet(points);
 		recalculating = false;
 		if (continuousCalculation) {
 			calculationRepeatCount++;
@@ -158,11 +165,47 @@ public class FractalStateManager implements ResultListener {
 			} else {
 				recalculatePoints();
 			}
+		} else if (getPointsRendered() < MAX_POINTS) {
+			recalculatePoints();
 		}
-		bufferIndex = 0;
 		sendMessage(MessageType.NEW_POINTS_AVAILABLE, accumulatedPoints);
 	}
-	
+
+	private PointSet createNewPointSet(float[] newPoints) {
+		int existingPointCount = getPointsRendered();
+		int newPointCount = existingPointCount;
+		//Log.d(LOG_TAG, String.format("Had %d points, just got %d new ones", existingPointCount, BATCH_SIZE));
+		if (existingPointCount < MAX_POINTS) {
+			newPointCount += BATCH_SIZE;
+		}
+		//Log.d(LOG_TAG, "Allocating new byte buffer");
+		ByteBuffer bb = ByteBuffer.allocateDirect(newPointCount * GlRenderer.COORDS_PER_VERTEX * GlRenderer.BYTES_PER_FLOAT);
+		bb.order(ByteOrder.nativeOrder());
+
+		// create a floating point buffer from the ByteBuffer
+		FloatBuffer pointBuffer = bb.asFloatBuffer();
+		if (existingPointCount > 0) {
+			if (existingPointCount == MAX_POINTS) {
+				// We are at max points, so we should chop off a batch from the beginning.
+				int numToKeep = MAX_POINTS - BATCH_SIZE;
+				//Log.d(LOG_TAG, String.format("Adding %d existing points to new buffer", numToKeep));
+				float[] keep = new float[numToKeep * GlRenderer.COORDS_PER_VERTEX];
+				fractalPoints.getPoints().position(BATCH_FLOATS);
+				fractalPoints.getPoints().get(keep, 0, keep.length);
+				pointBuffer.put(keep);
+			} else {
+				//Log.d(LOG_TAG, String.format("Adding all existing points to new buffer"));
+				pointBuffer.put(fractalPoints.getPoints());
+			}
+		}
+		// add the new coordinates to the FloatBuffer
+		//Log.d(LOG_TAG, "Appending new points to new buffer");
+		pointBuffer.put(newPoints, 0, BATCH_FLOATS);
+		// set the buffer to read the first coordinate
+		pointBuffer.position(0);
+		return new PointSet(pointBuffer, newPointCount);
+	}
+
 	public boolean isRecalculating() {
 		return recalculating;
 	}
@@ -266,7 +309,7 @@ public class FractalStateManager implements ResultListener {
 	private void stateChanged() {
 		sendMessage(MessageType.STATE_CHANGED, true);
 		cancelCalculation();
-		fractalPoints = null;
+		fractalPoints = new PointSet(null, 0);
 	}
 	
 	private void sendMessage(MessagePasser.MessageType type, boolean value) {
@@ -275,15 +318,8 @@ public class FractalStateManager implements ResultListener {
 		}
 	}
 
-	public int getBufferIndex() {
-		return bufferIndex;
-	}
-
-	public void incrementBufferIndex() {
-		bufferIndex = (bufferIndex + 1) % BUFFER_MULTIPLE;
-		if (bufferIndex > 0) {
-			sendMessage(MessageType.NEW_POINTS_AVAILABLE, true);
-		}
+	public int getPointsRendered() {
+		return fractalPoints.getNumPoints();
 	}
 	
 	private void cancelCalculation() {
@@ -311,5 +347,23 @@ public class FractalStateManager implements ResultListener {
 		undoStack.clear();
 		sendMessage(MessageType.UNDO_ENABLED_CHANGED, false);
 		stateChanged();
+	}
+
+	public class PointSet {
+		private FloatBuffer points;
+		private int numPoints;
+
+		public PointSet(FloatBuffer points, int numPoints) {
+			this.points = points;
+			this.numPoints = numPoints;
+		}
+
+		public FloatBuffer getPoints() {
+			return points;
+		}
+
+		public int getNumPoints() {
+			return numPoints;
+		}
 	}
 }
