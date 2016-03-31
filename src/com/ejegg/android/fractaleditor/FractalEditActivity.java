@@ -23,6 +23,7 @@ import android.content.DialogInterface;
 import android.content.res.Resources.NotFoundException;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -94,6 +95,12 @@ public class FractalEditActivity extends Activity implements
 	@Override
 	protected void onPause() {
 		super.onPause();
+		Log.d("FractalEditActivity", "onPause");
+		// Free up some memory
+		stateManager.cancelCalculation();
+		stateManager.resetPoints();
+		mainRenderer.freeThumbnailBuffers();
+		FractalCalculatorTask.freeRef();
 		view.onPause();
 	}
 

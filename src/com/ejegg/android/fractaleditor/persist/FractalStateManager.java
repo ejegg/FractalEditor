@@ -33,7 +33,7 @@ public class FractalStateManager implements ResultListener {
 	// Number of batches to calculate
 	private static final int MAX_CALCULATION_REPEAT = 48;
 
-	private PointSet fractalPoints = new PointSet(null, 0);
+	private PointSet fractalPoints;
     private FractalCalculatorTask calculator;
     private boolean editMode = false;
     private boolean recalculating = false;
@@ -52,6 +52,7 @@ public class FractalStateManager implements ResultListener {
 
 	public FractalStateManager(MessagePasser messagePasser) {
 		this.messagePasser = messagePasser;
+		resetPoints();
 	}
 
 	public boolean hasPoints() {
@@ -61,7 +62,11 @@ public class FractalStateManager implements ResultListener {
 	public PointSet getFractalPoints() {
 		return fractalPoints;
 	}
-	
+
+	public void resetPoints() {
+		fractalPoints = new PointSet(null, 0);
+	}
+
 	public FractalState getState() {
 		return State;
 	}
@@ -309,7 +314,7 @@ public class FractalStateManager implements ResultListener {
 	private void stateChanged() {
 		sendMessage(MessageType.STATE_CHANGED, true);
 		cancelCalculation();
-		fractalPoints = new PointSet(null, 0);
+		resetPoints();
 	}
 	
 	private void sendMessage(MessagePasser.MessageType type, boolean value) {
@@ -322,9 +327,10 @@ public class FractalStateManager implements ResultListener {
 		return fractalPoints.getNumPoints();
 	}
 	
-	private void cancelCalculation() {
+	public void cancelCalculation() {
 		if (calculator != null && !calculator.isCancelled()) {
 			calculator.cancel(true);
+			calculator = null;
 			recalculating = false;
 		}
 	}
@@ -349,7 +355,7 @@ public class FractalStateManager implements ResultListener {
 		stateChanged();
 	}
 
-	public class PointSet {
+	public static class PointSet {
 		private FloatBuffer points;
 		private int numPoints;
 

@@ -40,27 +40,27 @@ public class FractalSaver extends AsyncTask<FractalState, Integer, Boolean> {
 		FractalState state = params[0];
 		String saveName = state.getName();
 		Bitmap thumbnail = renderer.getThumbnail();
-		FileOutputStream thumbStream = null;
 
 		try {
 			Log.d("Saver", saveName);
-			File tempFile = File.createTempFile("frac_", ".png", saveDir);
-			thumbStream = new FileOutputStream(tempFile);
-			thumbnail.compress(CompressFormat.PNG, 100, thumbStream);
-			thumbStream.close();
-			String thumbnailPath = tempFile.getAbsolutePath();
-			state.setThumbnailPath(thumbnailPath);
-
+			if ( thumbnail != null ) {
+				File tempFile = File.createTempFile("frac_", ".png", saveDir);
+				FileOutputStream thumbStream = new FileOutputStream(tempFile);
+				thumbnail.compress(CompressFormat.PNG, 100, thumbStream);
+				thumbStream.close();
+				state.setThumbnailPath(tempFile.getAbsolutePath());
+			}
 			ContentValues val = new ContentValues();
 			val.put(FractalStateProvider.Items.NAME, saveName);
 			val.put(FractalStateProvider.Items.SHARED_ID, state.getSharedId());
 			val.put(FractalStateProvider.Items.TRANSFORM_COUNT, state.getNumTransforms());
 			val.put(FractalStateProvider.Items.SERIALIZED_TRANSFORMS, state.getSerializedTransforms());
 			val.put(FractalStateProvider.Items.LAST_UPDATED, System.currentTimeMillis());
-			val.put(FractalStateProvider.Items.THUMBNAIL, thumbnailPath);
+			val.put(FractalStateProvider.Items.THUMBNAIL, state.getThumbnailPath());
 			contentResolver.insert(FractalStateProvider.CONTENT_URI, val);
 
 			if (url != null) {
+				// Think I need to post this as a runnable to the main thread
 				FractalUploader uploader = new FractalUploader(messagePasser, contentResolver, url);
 				uploader.execute(state);
 			}

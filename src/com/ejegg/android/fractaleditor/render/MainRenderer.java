@@ -42,7 +42,6 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		this.camera = camera;
 		this.stateManager = stateManager;
 		this.passer = passer;
-		createThumbnailBuffers();
 		calculateMinMaxDist();
 		lastCameraPosition = camera.getLastMoveId();
 		passer.Subscribe(this, MessageType.NEW_POINTS_AVAILABLE, MessageType.ACCUMULATION_MODE_CHANGED, MessageType.CAMERA_MOTION_CHANGED, MessageType.STATE_CHANGED);
@@ -54,6 +53,11 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		Log.d("MainRenderer", String.format("Creating buffers, width=%s, height=%s", thumbWidth, thumbHeight));
 		thumbnailBuffer = new int[thumbWidth * thumbHeight];
 		wrappedThumbnailBuffer = IntBuffer.wrap(thumbnailBuffer);
+	}
+
+	public void freeThumbnailBuffers() {
+		thumbnailBuffer = null;
+		wrappedThumbnailBuffer = null;
 	}
 
 	@Override
@@ -105,7 +109,6 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 		Log.d("MainRenderer", "onSurfaceChanged");
 		GLES20.glViewport(0, 0, width, height);
 		camera.setScreenDimensions(width,height);
-		createThumbnailBuffers();
 		if (textureRenderer != null) {
 			textureRenderer.freeResources();
 		}
@@ -144,6 +147,9 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 				}
 				if (stateManager.getPointsRendered() == FractalStateManager.MAX_POINTS) {
 					renderThumbnail = true;
+					if (wrappedThumbnailBuffer == null) {
+						createThumbnailBuffers();
+					}
 				}
 				break;
 			case ACCUMULATION_MODE_CHANGED:
@@ -201,6 +207,9 @@ public class MainRenderer implements GLSurfaceView.Renderer, MessagePasser.Messa
 	}
 
 	public Bitmap getRender() {
+		if (thumbnailBuffer == null) {
+			return null;
+		}
 		// Cribbed from http://stackoverflow.com/questions/20606295/when-using-gles20-glreadpixels-on-android-the-data-returned-by-it-is-not-exactl
 		Log.d("MainRenderer", String.format("Creating bitmap, width=%s, height=%s", thumbWidth, thumbHeight));
 		int bt[] = new int[thumbWidth * thumbHeight];

@@ -37,7 +37,7 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
         if (pointsRef != null) {
                 fractalPoints = pointsRef.get(); //assuming numPoints does not change!!
         }
-        
+
         if (fractalPoints == null) {
                 Log.d("FractalCalculatorTask", "Allocating new points array");
                 fractalPoints = new float[numPoints * GlRenderer.COORDS_PER_VERTEX + 1];
@@ -88,6 +88,10 @@ public class FractalCalculatorTask extends AsyncTask<FractalCalculatorTask.Reque
         }
 
         return fractalPoints;
+    }
+
+    public static void freeRef() {
+        pointsRef = null;
     }
 
     public static class Request {
