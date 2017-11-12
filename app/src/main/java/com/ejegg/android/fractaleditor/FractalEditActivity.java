@@ -57,6 +57,7 @@ public class FractalEditActivity extends Activity implements
 		FractalEditor appContext = (FractalEditor) getApplicationContext();
 		passer = appContext.getMessagePasser();
 		passer.Subscribe(this, MessageType.EDIT_MODE_CHANGED,
+				MessageType.STATE_CHANGED,
 				MessageType.SCALE_MODE_CHANGED,
 				MessageType.UNDO_ENABLED_CHANGED,
 				MessageType.STATE_SAVED,
@@ -207,7 +208,13 @@ public class FractalEditActivity extends Activity implements
 
 	private void setButtonStates() {
 		boolean editMode = stateManager.isEditMode();
-		((EditButton) findViewById(R.id.modeButton)).setEditMode(editMode);
+		EditButton editButton = (EditButton) findViewById(R.id.modeButton);
+		editButton.setEditMode(editMode);
+		if (editMode) {
+			editButton.setEnabled(stateManager.getState().getNumTransforms() > 0);
+		} else {
+			editButton.setEnabled(true);
+		}
 		((ScaleModeButton) findViewById(R.id.scaleModeButton))
 				.setScaleMode(stateManager.isUniformScaleMode());
 		((Button) findViewById(R.id.undoButton)).setEnabled(editMode
