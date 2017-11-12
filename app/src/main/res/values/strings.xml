@@ -15,6 +15,7 @@
     <string name="save_ok">Save</string>
     <string name="delete_ok">Delete</string>
     <string name="dialog_cancel">Cancel</string>
+    <string name="create_new">New Fractal</string>
     <string name="title_activity_save">Save Fractal</string>
     <string name="title_activity_delete">Delete Fractal</string>
     <string name="save_extra_key">SAVE_NAME</string>

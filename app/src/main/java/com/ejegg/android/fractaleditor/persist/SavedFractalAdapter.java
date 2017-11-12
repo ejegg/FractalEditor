@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -38,6 +39,8 @@ public class SavedFractalAdapter extends RecyclerView.Adapter<SavedFractalAdapte
 			viewHolder.thumbnailView.setImageDrawable(
 				context.getResources().getDrawable(R.drawable.ic_menu_add)
 			);
+			viewHolder.nameView.setTypeface(null, Typeface.BOLD_ITALIC);
+			viewHolder.nameView.setText(context.getResources().getString(R.string.create_new));
 			return;
 		}
 		data.moveToPosition(data.getCount() - i);
